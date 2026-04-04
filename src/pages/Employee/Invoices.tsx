@@ -179,6 +179,10 @@ const Invoices: React.FC = () => {
                       <p className="text-[10px] font-bold text-gray-400 mb-1">التاريخ</p>
                       <p className="font-bold text-gray-900">{format(new Date(selectedInvoice.date), 'yyyy-MM-dd')}</p>
                     </div>
+                    <div className="bg-gray-50 p-4 rounded-2xl">
+                      <p className="text-[10px] font-bold text-gray-400 mb-1">رقم الهاتف</p>
+                      <p className="font-bold text-gray-900">{selectedInvoice.phone_number || 'غير متوفر'}</p>
+                    </div>
                   </div>
 
                   <div className="space-y-2">

@@ -32,6 +32,7 @@ export interface Invoice {
   image_urls?: string[];
   attachments?: string[];
   notes?: string;
+  phone_number?: string;
   createdAt: string;
   createdAtLocal?: string;
 }

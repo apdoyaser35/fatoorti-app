@@ -138,7 +138,7 @@ const Home: React.FC = () => {
       return;
     }
     
-    if (!profile?.phone_number && !phoneNumber) {
+    if (!phoneNumber.trim()) {
       setError('يرجى إدخال رقم الجوال');
       return;
     }
@@ -162,6 +162,7 @@ const Home: React.FC = () => {
         branch_id: selectedBranch,
         employee_id: user.uid,
         attachments: attachmentUrls,
+        phone_number: phoneNumber.trim(),
         createdAt: now.toISOString(),
         createdAtLocal: format(now, 'yyyy-MM-dd hh:mm a', { locale: ar }),
       };
@@ -182,7 +183,7 @@ const Home: React.FC = () => {
       if (profile?.uid) {
         const updates: any = {};
         if (selectedBranch !== profile.branch_id) updates.branch_id = selectedBranch;
-        if (!profile.phone_number && phoneNumber) updates.phone_number = phoneNumber;
+        if (profile.phone_number !== phoneNumber.trim()) updates.phone_number = phoneNumber.trim();
         
         if (Object.keys(updates).length > 0) {
           try {
@@ -216,19 +217,17 @@ const Home: React.FC = () => {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Phone Number Field */}
-        {!profile?.phone_number && (
-          <div className="space-y-3">
-            <label className="text-sm font-bold text-gray-700 mr-1">رقم الجوال <span className="text-red-500">*</span></label>
-            <input
-              type="tel"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              placeholder="مثال: 0500000000"
-              className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-primary outline-none"
-              required
-            />
-          </div>
-        )}
+        <div className="space-y-3">
+          <label className="text-sm font-bold text-gray-700 mr-1">رقم الجوال <span className="text-red-500">*</span></label>
+          <input
+            type="tel"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
+            placeholder="مثال: 0500000000"
+            className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-primary outline-none"
+            required
+          />
+        </div>
 
         {/* Branch Selection */}
         <div className="space-y-3">

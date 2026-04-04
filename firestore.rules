@@ -24,11 +24,13 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isAuthenticated();
 
-      allow create: if isOwner(userId)
-        && request.resource.data.role == 'employee';
+      allow create: if isAuthenticated() && 
+                   request.resource.data.keys().hasAll(['username', 'role', 'active']) &&
+                   (!('phone_number' in request.resource.data) || request.resource.data.phone_number is string);
 
-      allow update: if isAdmin()
-        || (isOwner(userId) && request.resource.data.role == resource.data.role);
+      allow update: if isAdmin() || (isOwner(userId) && 
+                    (!('phone_number' in request.resource.data) || request.resource.data.phone_number is string) &&
+                    request.resource.data.role == resource.data.role);
 
       allow delete: if isAdmin();
     }
@@ -63,6 +65,9 @@ service cloud.firestore {
         && request.resource.data.employee_id == request.auth.uid
         && request.resource.data.invoice_number is string
         && request.resource.data.branch_id is string
+        && (!('delivery_company_id' in request.resource.data) || request.resource.data.delivery_company_id is string)
+        && (!('notes' in request.resource.data) || request.resource.data.notes is string)
+        && (!('phone_number' in request.resource.data) || request.resource.data.phone_number is string)
         && (
           (request.resource.data.keys().hasAll(['attachments']) && request.resource.data.attachments is list) ||
           (request.resource.data.keys().hasAll(['image_urls']) && request.resource.data.image_urls is list)

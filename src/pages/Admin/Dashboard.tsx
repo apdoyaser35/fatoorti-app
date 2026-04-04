@@ -119,6 +119,7 @@ const Dashboard: React.FC = () => {
         date: inv.createdAtLocal || format(new Date(inv.date), 'yyyy-MM-dd hh:mm a', { locale: ar }),
         branch_name: branches[inv.branch_id]?.name || 'غير معروف',
         employee_name: employees[inv.employee_id]?.username || 'غير معروف',
+        phone_number: inv.phone_number || 'غير متوفر',
         delivery_company_name: inv.delivery_company_id ? (deliveryCompanies[inv.delivery_company_id]?.name || 'غير معروف') : 'بدون',
         notes: inv.notes || 'لا يوجد',
         attachments: inv.attachments || inv.image_urls
@@ -229,6 +230,7 @@ const Dashboard: React.FC = () => {
                      <div>
                        <p style="font-size: 14px; font-weight: bold; color: #6b7280; margin: 0 0 4px 0; text-transform: uppercase;">الموظف المسجل</p>
                        <p style="font-size: 18px; font-weight: bold; color: #111827; margin: 0;">${employees[inv.employee_id]?.username || 'غير معروف'}</p>
+                       <p style="font-size: 14px; font-weight: bold; color: #6b7280; margin: 4px 0 0 0;" dir="ltr">${inv.phone_number || 'غير متوفر'}</p>
                      </div>
                      <div>
                        <p style="font-size: 14px; font-weight: bold; color: #6b7280; margin: 0 0 4px 0; text-transform: uppercase;">شركة التوصيل</p>
@@ -680,9 +682,10 @@ const Dashboard: React.FC = () => {
                       <p className="text-[10px] font-bold text-gray-400 mb-1">الوقت</p>
                       <p className="font-bold text-gray-900">{format(new Date(selectedInvoice.createdAt || selectedInvoice.date), 'hh:mm a', { locale: ar })}</p>
                     </div>
-                    <div className="bg-gray-50 p-4 rounded-2xl">
+                    <div className="bg-gray-50 p-4 rounded-2xl flex flex-col justify-center">
                       <p className="text-[10px] font-bold text-gray-400 mb-1">الموظف</p>
                       <p className="font-bold text-gray-900">{employees[selectedInvoice.employee_id]?.username}</p>
+                      <p className="text-[10px] font-bold text-gray-500 mt-1" dir="ltr">{selectedInvoice.phone_number || 'غير متوفر'}</p>
                     </div>
                     <div className="bg-gray-50 p-4 rounded-2xl">
                       <p className="text-[10px] font-bold text-gray-400 mb-1">شركة التوصيل</p>
