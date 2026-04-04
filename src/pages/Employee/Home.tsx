@@ -6,7 +6,7 @@ import { uploadImageToCloudinary } from '../../lib/cloudinary';
 import { useAuth } from '../../contexts/AuthContext';
 import { Branch, DeliveryCompany, Invoice } from '../../types';
 import imageCompression from 'browser-image-compression';
-import { Camera, Upload, X, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { Camera, Upload, X, CheckCircle2, AlertCircle, Loader2, FileText as FileIcon, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { format, startOfDay, endOfDay } from 'date-fns';
@@ -18,9 +18,10 @@ const Home: React.FC = () => {
   const [deliveryCompanies, setDeliveryCompanies] = useState<DeliveryCompany[]>([]);
   const [selectedBranch, setSelectedBranch] = useState<string>(profile?.branch_id || '');
   const [selectedDelivery, setSelectedDelivery] = useState<string>('');
+  const [phoneNumber, setPhoneNumber] = useState<string>(profile?.phone_number || '');
   const [notes, setNotes] = useState<string>('');
-  const [images, setImages] = useState<File[]>([]);
-  const [previews, setPreviews] = useState<string[]>([]);
+  const [files, setFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<{url: string, type: string, name: string}[]>([]);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -47,11 +48,12 @@ const Home: React.FC = () => {
     }
   }, [profile]);
 
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const newFiles = Array.from(e.target.files);
-      const compressedFiles = await Promise.all(
-        newFiles.map(async (file: any) => {
+      const processedFiles = await Promise.all(
+        newFiles.map(async (file: File) => {
+          if (file.type === 'application/pdf') return file;
           const compressed = await imageCompression(file, {
             maxSizeMB: 1,
             maxWidthOrHeight: 1920,
@@ -59,16 +61,46 @@ const Home: React.FC = () => {
           });
           return compressed;
         })
-      ) as any[];
-      setImages(prev => [...prev, ...compressedFiles]);
+      );
+      setFiles(prev => [...prev, ...processedFiles]);
 
-      const newPreviews = compressedFiles.map(file => URL.createObjectURL(file));
+      const newPreviews = processedFiles.map(file => ({
+        url: URL.createObjectURL(file),
+        type: file.type,
+        name: file.name
+      }));
       setPreviews(prev => [...prev, ...newPreviews]);
     }
   };
 
-  const removeImage = (index: number) => {
-    setImages(prev => prev.filter((_, i) => i !== index));
+  const handleReplaceFile = async (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      let processedFile = file;
+      if (file.type !== 'application/pdf') {
+        processedFile = await imageCompression(file, { maxSizeMB: 1, maxWidthOrHeight: 1920, useWebWorker: true });
+      }
+      
+      setFiles(prev => {
+        const newArr = [...prev];
+        newArr[index] = processedFile as File;
+        return newArr;
+      });
+      
+      setPreviews(prev => {
+        const newArr = [...prev];
+        newArr[index] = {
+          url: URL.createObjectURL(processedFile as File),
+          type: file.type,
+          name: file.name
+        };
+        return newArr;
+      });
+    }
+  };
+
+  const removeFile = (index: number) => {
+    setFiles(prev => prev.filter((_, i) => i !== index));
     setPreviews(prev => prev.filter((_, i) => i !== index));
   };
 
@@ -101,8 +133,13 @@ const Home: React.FC = () => {
       return;
     }
 
-    if (!selectedBranch || images.length === 0) {
-      setError('يرجى اختيار الفرع وإرفاق صورة واحدة على الأقل');
+    if (!selectedBranch || files.length === 0) {
+      setError('يرجى اختيار الفرع وإرفاق ملف أو صورة واحدة على الأقل');
+      return;
+    }
+    
+    if (!profile?.phone_number && !phoneNumber) {
+      setError('يرجى إدخال رقم الجوال');
       return;
     }
 
@@ -111,11 +148,11 @@ const Home: React.FC = () => {
 
     try {
       const invoiceNumber = await generateInvoiceNumber();
-      const imageUrls: string[] = [];
+      const attachmentUrls: string[] = [];
 
-      for (const image of images) {
-        const url = await uploadImageToCloudinary(image);
-        imageUrls.push(url);
+      for (const file of files) {
+        const url = await uploadImageToCloudinary(file);
+        attachmentUrls.push(url);
       }
 
       const now = new Date();
@@ -124,7 +161,7 @@ const Home: React.FC = () => {
         date: now.toISOString(),
         branch_id: selectedBranch,
         employee_id: user.uid,
-        image_urls: imageUrls,
+        attachments: attachmentUrls,
         createdAt: now.toISOString(),
         createdAtLocal: format(now, 'yyyy-MM-dd hh:mm a', { locale: ar }),
       };
@@ -141,17 +178,23 @@ const Home: React.FC = () => {
         handleFirestoreError(err, OperationType.WRITE, 'invoices');
       }
 
-      // Update user's last selected branch if it changed
-      if (profile?.uid && selectedBranch !== profile.branch_id) {
-        try {
-          await updateDoc(doc(db, 'users', profile.uid), { branch_id: selectedBranch });
-        } catch (err) {
-          console.warn('Could not update user branch', err);
+      // Update user profile fields if needed
+      if (profile?.uid) {
+        const updates: any = {};
+        if (selectedBranch !== profile.branch_id) updates.branch_id = selectedBranch;
+        if (!profile.phone_number && phoneNumber) updates.phone_number = phoneNumber;
+        
+        if (Object.keys(updates).length > 0) {
+          try {
+            await updateDoc(doc(db, 'users', profile.uid), updates);
+          } catch (err) {
+            console.warn('Could not update user profile', err);
+          }
         }
       }
 
       setSuccess(true);
-      setImages([]);
+      setFiles([]);
       setPreviews([]);
       setSelectedDelivery('');
       setNotes('');
@@ -172,6 +215,21 @@ const Home: React.FC = () => {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Phone Number Field */}
+        {!profile?.phone_number && (
+          <div className="space-y-3">
+            <label className="text-sm font-bold text-gray-700 mr-1">رقم الجوال <span className="text-red-500">*</span></label>
+            <input
+              type="tel"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              placeholder="مثال: 0500000000"
+              className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-primary outline-none"
+              required
+            />
+          </div>
+        )}
+
         {/* Branch Selection */}
         <div className="space-y-3">
           <label className="text-sm font-bold text-gray-700 mr-1">الفرع</label>
@@ -254,39 +312,53 @@ const Home: React.FC = () => {
           />
         </div>
 
-        {/* Image Upload */}
+        {/* File Upload */}
         <div className="space-y-3">
-          <label className="text-sm font-bold text-gray-700 mr-1">صور الفاتورة / الطلب</label>
+          <label className="text-sm font-bold text-gray-700 mr-1">صور الفاتورة / ملفات PDF</label>
           <div className="grid grid-cols-3 gap-3">
             <AnimatePresence>
               {previews.map((preview, index) => (
                 <motion.div
-                  key={preview}
+                  key={preview.url}
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.8 }}
-                  className="relative aspect-square rounded-2xl overflow-hidden border-2 border-gray-100 shadow-sm"
+                  className="relative aspect-square rounded-2xl overflow-hidden border-2 border-gray-100 shadow-sm flex flex-col items-center justify-center bg-gray-50"
                 >
-                  <img src={preview} alt="preview" className="w-full h-full object-cover" />
-                  <button
-                    type="button"
-                    onClick={() => removeImage(index)}
-                    className="absolute top-1 right-1 bg-black/50 text-white p-1 rounded-full backdrop-blur-sm"
-                  >
-                    <X size={14} />
-                  </button>
+                  {preview.type === 'application/pdf' ? (
+                    <div className="flex flex-col items-center gap-2 p-2 text-center w-full">
+                      <FileIcon size={32} className="text-red-500" />
+                      <span className="text-[10px] font-bold text-gray-600 truncate w-full px-2" dir="ltr">{preview.name}</span>
+                    </div>
+                  ) : (
+                    <img src={preview.url} alt="preview" className="w-full h-full object-cover" />
+                  )}
+                  
+                  <div className="absolute top-1 right-1 flex gap-1">
+                    <button
+                      type="button"
+                      onClick={() => removeFile(index)}
+                      className="bg-black/50 text-white p-1 rounded-full backdrop-blur-sm hover:bg-black/70 transition"
+                    >
+                      <X size={14} />
+                    </button>
+                    <label className="bg-primary/80 text-white p-1 rounded-full backdrop-blur-sm cursor-pointer hover:bg-primary transition">
+                      <RefreshCw size={14} />
+                      <input type="file" accept="image/*,application/pdf" className="hidden" onChange={(e) => handleReplaceFile(index, e)} />
+                    </label>
+                  </div>
                 </motion.div>
               ))}
             </AnimatePresence>
 
             <label className="aspect-square rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-2 text-gray-400 hover:border-primary hover:text-primary transition-all cursor-pointer bg-gray-50/50">
               <Camera size={28} />
-              <span className="text-[10px] font-bold">إضافة صورة</span>
+              <span className="text-[10px] font-bold">إضافة ملف</span>
               <input
                 type="file"
-                accept="image/*"
+                accept="image/*,application/pdf"
                 multiple
-                onChange={handleImageChange}
+                onChange={handleFileChange}
                 className="hidden"
               />
             </label>

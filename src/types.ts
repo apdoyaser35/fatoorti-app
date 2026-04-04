@@ -5,6 +5,7 @@ export interface UserProfile {
   username: string;
   role: UserRole;
   branch_id?: string;
+  phone_number?: string;
   createdAt: string;
 }
 
@@ -28,7 +29,8 @@ export interface Invoice {
   branch_id: string;
   employee_id: string;
   delivery_company_id?: string;
-  image_urls: string[];
+  image_urls?: string[];
+  attachments?: string[];
   notes?: string;
   createdAt: string;
   createdAtLocal?: string;

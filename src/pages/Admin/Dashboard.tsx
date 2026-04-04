@@ -4,11 +4,12 @@ import { db } from '../../firebase';
 import { Invoice, Branch, DeliveryCompany, UserProfile } from '../../types';
 import { format, startOfDay, endOfDay, subDays } from 'date-fns';
 import { ar } from 'date-fns/locale/ar';
-import { Search, Calendar, Filter, Download, FileSpreadsheet, Archive, ChevronLeft, ChevronRight, Eye, MoreVertical, X, ShieldAlert, Trash2 } from 'lucide-react';
+import { Search, Calendar, Filter, Download, FileSpreadsheet, Archive, ChevronLeft, ChevronRight, Eye, MoreVertical, X, ShieldAlert, Trash2, Edit2, FileText as FileIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 import JSZip from 'jszip';
 import html2pdf from 'html2pdf.js';
+import { EditInvoiceModal } from '../../components/EditInvoiceModal';
 
 const Dashboard: React.FC = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -16,11 +17,13 @@ const Dashboard: React.FC = () => {
   const [deliveryCompanies, setDeliveryCompanies] = useState<Record<string, DeliveryCompany>>({});
   const [employees, setEmployees] = useState<Record<string, UserProfile>>({});
   const [loading, setLoading] = useState(true);
-  const [filterDate, setFilterDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
+  const [filterStartDate, setFilterStartDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
+  const [filterEndDate, setFilterEndDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
   const [filterBranch, setFilterBranch] = useState<string>('');
   const [filterDelivery, setFilterDelivery] = useState<string>('');
   const [showFilters, setShowFilters] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
 
   // Backup feature states
   const [backupStart, setBackupStart] = useState<string>(format(subDays(new Date(), 7), 'yyyy-MM-dd'));
@@ -61,9 +64,13 @@ const Dashboard: React.FC = () => {
           limit(50)
         );
 
-        if (filterDate) {
-          const start = startOfDay(new Date(filterDate)).toISOString();
-          const end = endOfDay(new Date(filterDate)).toISOString();
+        if (filterStartDate && filterEndDate) {
+          const start = startOfDay(new Date(filterStartDate)).toISOString();
+          const end = endOfDay(new Date(filterEndDate)).toISOString();
+          q = query(q, where('date', '>=', start), where('date', '<=', end));
+        } else if (filterStartDate) {
+          const start = startOfDay(new Date(filterStartDate)).toISOString();
+          const end = endOfDay(new Date(filterStartDate)).toISOString();
           q = query(q, where('date', '>=', start), where('date', '<=', end));
         }
 
@@ -84,22 +91,26 @@ const Dashboard: React.FC = () => {
       }
     };
     fetchInvoices();
-  }, [filterDate, filterBranch, filterDelivery]);
+  }, [filterStartDate, filterEndDate, filterBranch, filterDelivery]);
 
 
 
   const archiveImages = async () => {
     setLoading(true);
     const zip = new JSZip();
-    const folder = zip.folder(`Invoices_Images_${filterDate}`);
+    const folderName = filterStartDate === filterEndDate ? filterStartDate : `${filterStartDate}_to_${filterEndDate}`;
+    const folder = zip.folder(`Invoices_Data_${folderName}`);
     
     try {
       for (const inv of invoices) {
-        for (let i = 0; i < inv.image_urls.length; i++) {
-          const url = inv.image_urls[i];
+        const attachs = inv.attachments?.length ? inv.attachments : (inv.image_urls || []);
+        for (let i = 0; i < attachs.length; i++) {
+          const url = attachs[i];
+          const isPdf = url.toLowerCase().includes('.pdf');
+          const ext = isPdf ? 'pdf' : 'jpg';
           const response = await fetch(url);
           const blob = await response.blob();
-          folder?.file(`${format(new Date(inv.date), 'yyyy-MM-dd')}_${inv.invoice_number}_${i}.jpg`, blob);
+          folder?.file(`${format(new Date(inv.date), 'yyyy-MM-dd')}_${inv.invoice_number}_${i}.${ext}`, blob);
         }
       }
       
@@ -110,14 +121,14 @@ const Dashboard: React.FC = () => {
         employee_name: employees[inv.employee_id]?.username || 'غير معروف',
         delivery_company_name: inv.delivery_company_id ? (deliveryCompanies[inv.delivery_company_id]?.name || 'غير معروف') : 'بدون',
         notes: inv.notes || 'لا يوجد',
-        image_urls: inv.image_urls
+        attachments: inv.attachments || inv.image_urls
       }));
       folder?.file('invoices.json', JSON.stringify(jsonData, null, 2));
 
       const content = await zip.generateAsync({ type: 'blob' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(content);
-      link.download = `Invoices_Images_${filterDate}.zip`;
+      link.download = `Invoices_Data_${folderName}.zip`;
       link.click();
     } catch (err) {
       console.error(err);
@@ -232,14 +243,27 @@ const Dashboard: React.FC = () => {
                   </div>
                   ` : ''}
                   
-                  <div>
+                    <div>
                     <h4 style="font-size: 18px; font-weight: bold; color: #111827; margin: 0 0 16px 0; padding-bottom: 8px; border-bottom: 2px solid #f3f4f6;">المرفقات الضوئية</h4>
                     <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
-                      ${inv.image_urls.map(url => `
-                        <div style="border: 2px solid #e5e7eb; border-radius: 12px; overflow: hidden; background: #f9fafb; display: flex; align-items: center; justify-content: center; height: 350px;">
-                          <img src="${url}" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: contain;" />
-                        </div>
-                      `).join('')}
+                      ${(inv.attachments?.length ? inv.attachments : (inv.image_urls || [])).map((url, i) => {
+                        const isPdf = url.toLowerCase().includes('.pdf');
+                        if (isPdf) {
+                          return `
+                            <div style="border: 2px solid #e5e7eb; border-radius: 12px; background: #f9fafb; display: flex; align-items: center; justify-content: center; height: 100px; padding: 20px;">
+                              <a href="${url}" target="_blank" style="color: #ef4444; text-decoration: none; font-weight: bold; font-size: 18px;">
+                                ملف PDF (مرفق ${i+1}) - اضغط للفتح
+                              </a>
+                            </div>
+                          `;
+                        } else {
+                          return `
+                            <div style="border: 2px solid #e5e7eb; border-radius: 12px; overflow: hidden; background: #f9fafb; display: flex; align-items: center; justify-content: center; height: 350px;">
+                              <img src="${url}" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: contain;" />
+                            </div>
+                          `;
+                        }
+                      }).join('')}
                     </div>
                   </div>
                 </div>
@@ -301,7 +325,7 @@ const Dashboard: React.FC = () => {
       setToastMessage(`تم الحذف بنجاح! تم مسح ${itemsDeleted} فاتورة`);
       setBackupSuccess(false);
       
-      if ((filterDate >= backupStart && filterDate <= backupEnd) || !filterDate) {
+      if ((filterStartDate >= backupStart && filterEndDate <= backupEnd) || (!filterStartDate && !filterEndDate)) {
         window.location.reload(); 
       }
     } catch (err) {
@@ -373,47 +397,26 @@ const Dashboard: React.FC = () => {
             <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4 mb-4">
               <div className="space-y-2">
                 <label className="text-xs font-bold text-gray-500 mr-1">التاريخ</label>
-                <div className="grid grid-cols-3 gap-2 mb-2">
-                  <button
-                    onClick={() => setFilterDate(format(new Date(), 'yyyy-MM-dd'))}
-                    className={cn(
-                      "py-2 px-3 text-xs font-bold rounded-xl transition-all border",
-                      filterDate === format(new Date(), 'yyyy-MM-dd') 
-                        ? "bg-primary text-white border-primary" 
-                        : "bg-gray-50 text-gray-600 border-gray-100 hover:bg-gray-100"
-                    )}
-                  >
-                    اليوم
-                  </button>
-                  <button
-                    onClick={() => setFilterDate(format(subDays(new Date(), 1), 'yyyy-MM-dd'))}
-                    className={cn(
-                      "py-2 px-3 text-xs font-bold rounded-xl transition-all border",
-                      filterDate === format(subDays(new Date(), 1), 'yyyy-MM-dd') 
-                        ? "bg-primary text-white border-primary" 
-                        : "bg-gray-50 text-gray-600 border-gray-100 hover:bg-gray-100"
-                    )}
-                  >
-                    الأمس
-                  </button>
-                  <button
-                    onClick={() => setFilterDate('')}
-                    className={cn(
-                      "py-2 px-3 text-xs font-bold rounded-xl transition-all border",
-                      filterDate === '' 
-                        ? "bg-primary text-white border-primary" 
-                        : "bg-gray-50 text-gray-600 border-gray-100 hover:bg-gray-100"
-                    )}
-                  >
-                    الكل
-                  </button>
+                <div className="grid grid-cols-2 gap-3 mb-2">
+                  <div className="space-y-1">
+                    <label className="text-xs text-gray-400">من</label>
+                    <input
+                      type="date"
+                      value={filterStartDate}
+                      onChange={(e) => setFilterStartDate(e.target.value)}
+                      className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary outline-none"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs text-gray-400">إلى</label>
+                    <input
+                      type="date"
+                      value={filterEndDate}
+                      onChange={(e) => setFilterEndDate(e.target.value)}
+                      className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary outline-none"
+                    />
+                  </div>
                 </div>
-                <input
-                  type="date"
-                  value={filterDate}
-                  onChange={(e) => setFilterDate(e.target.value)}
-                  className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary outline-none"
-                />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
@@ -445,68 +448,101 @@ const Dashboard: React.FC = () => {
       </AnimatePresence>
 
       {/* Invoices List */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-4">
+      <div className="space-y-8">
         {loading ? (
-          <div className="lg:col-span-full flex flex-col items-center justify-center py-20 gap-4">
+          <div className="flex flex-col items-center justify-center py-20 gap-4">
             <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
             <p className="text-gray-400 font-bold">جاري تحميل الفواتير...</p>
           </div>
         ) : invoices.length === 0 ? (
-          <div className="lg:col-span-full text-center py-20 space-y-4">
+          <div className="text-center py-20 space-y-4">
             <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto">
               <Search size={32} className="text-gray-300" />
             </div>
-            <p className="text-gray-400 font-bold">لا توجد فواتير لهذا اليوم</p>
+            <p className="text-gray-400 font-bold">لا توجد فواتير لهذه الفترة</p>
           </div>
         ) : (
-          invoices.map((invoice) => (
-            <motion.div
-              key={invoice.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex flex-col h-full"
-            >
-              <div className="space-y-4 flex-1">
-                <div className="flex justify-between items-start">
-                <div className="space-y-1">
-                  <p className="text-xs font-bold text-primary">{invoice.invoice_number}</p>
-                  <h3 className="text-lg font-bold text-gray-900">{branches[invoice.branch_id]?.name}</h3>
-                  <p className="text-xs text-gray-500">{format(new Date(invoice.date), 'hh:mm a', { locale: ar })}</p>
-                </div>
-                <div className="bg-gray-50 px-3 py-1 rounded-full flex items-center h-fit">
-                  <span className="text-[10px] font-bold text-gray-500">{invoice.delivery_company_id ? deliveryCompanies[invoice.delivery_company_id]?.name : 'بدون توصيل'}</span>
-                </div>
-              </div>
-
-              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                {invoice.image_urls.map((url, i) => (
-                  <div
-                    key={i}
-                    onClick={() => setSelectedInvoice(invoice)}
-                    className="flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden border border-gray-100 cursor-pointer"
-                  >
-                    <img src={url} alt="invoice" className="w-full h-full object-cover" />
+          Object.entries(
+            invoices.reduce((acc, inv) => {
+              const d = format(new Date(inv.date), 'yyyy-MM-dd');
+              if (!acc[d]) acc[d] = [];
+              acc[d].push(inv);
+              return acc;
+            }, {} as Record<string, Invoice[]>)
+          ).sort((a, b) => b[0].localeCompare(a[0]))
+          .map(([dateKey, dayInvoices]) => (
+            <div key={dateKey} className="space-y-4">
+              <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-primary/10 text-primary rounded-xl flex items-center justify-center">
+                    <Calendar size={16} />
                   </div>
-                ))}
-              </div>
+                  <h3 className="text-lg font-bold text-gray-900">{format(new Date(dateKey), 'dd MMMM yyyy', { locale: ar })}</h3>
+                </div>
+                <div className="bg-gray-100 px-3 py-1 rounded-full">
+                  <span className="text-xs font-bold text-gray-600">{dayInvoices.length} فواتير</span>
+                </div>
               </div>
               
-              <div className="flex justify-between items-center pt-4 border-t border-gray-50 mt-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center">
-                    <span className="text-[10px] font-bold text-primary">{employees[invoice.employee_id]?.username?.[0]?.toUpperCase()}</span>
-                  </div>
-                  <span className="text-xs font-bold text-gray-600">{employees[invoice.employee_id]?.username}</span>
-                </div>
-                <button
-                  onClick={() => setSelectedInvoice(invoice)}
-                  className="text-primary text-xs font-bold flex items-center gap-1"
-                >
-                  <Eye size={14} />
-                  <span>عرض التفاصيل</span>
-                </button>
+              <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-4">
+                {dayInvoices.map((invoice) => (
+                  <motion.div
+                    key={invoice.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex flex-col h-full"
+                  >
+                    <div className="space-y-4 flex-1">
+                      <div className="flex justify-between items-start">
+                      <div className="space-y-1">
+                        <p className="text-xs font-bold text-primary">{invoice.invoice_number}</p>
+                        <h3 className="text-lg font-bold text-gray-900">{branches[invoice.branch_id]?.name}</h3>
+                        <p className="text-xs text-gray-500">{format(new Date(invoice.date), 'hh:mm a', { locale: ar })}</p>
+                      </div>
+                      <div className="bg-gray-50 px-3 py-1 rounded-full flex items-center h-fit">
+                        <span className="text-[10px] font-bold text-gray-500">{invoice.delivery_company_id ? deliveryCompanies[invoice.delivery_company_id]?.name : 'بدون توصيل'}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                      {(invoice.attachments?.length ? invoice.attachments : (invoice.image_urls || [])).map((url, i) => (
+                        <div
+                          key={i}
+                          onClick={() => setSelectedInvoice(invoice)}
+                          className="flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden border border-gray-100 cursor-pointer flex items-center justify-center bg-gray-50"
+                        >
+                          {url.toLowerCase().includes('.pdf') ? (
+                            <div className="flex flex-col items-center gap-1">
+                              <FileIcon size={24} className="text-red-500" />
+                              <span className="text-[8px] font-bold text-gray-500">PDF</span>
+                            </div>
+                          ) : (
+                            <img src={url} alt="invoice" className="w-full h-full object-cover" />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    </div>
+                    
+                    <div className="flex justify-between items-center pt-4 border-t border-gray-50 mt-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center">
+                          <span className="text-[10px] font-bold text-primary">{employees[invoice.employee_id]?.username?.[0]?.toUpperCase()}</span>
+                        </div>
+                        <span className="text-xs font-bold text-gray-600">{employees[invoice.employee_id]?.username}</span>
+                      </div>
+                      <button
+                        onClick={() => setSelectedInvoice(invoice)}
+                        className="text-primary text-xs font-bold flex items-center gap-1"
+                      >
+                        <Eye size={14} />
+                        <span>عرض التفاصيل</span>
+                      </button>
+                    </div>
+                  </motion.div>
+                ))}
               </div>
-            </motion.div>
+            </div>
           ))
         )}
       </div>
@@ -609,6 +645,14 @@ const Dashboard: React.FC = () => {
                 <div className="flex justify-between items-center">
                   <h3 className="text-xl font-bold">تفاصيل الفاتورة</h3>
                   <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        setEditingInvoice(selectedInvoice);
+                      }}
+                      className="p-2 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors"
+                    >
+                      <Edit2 size={20} />
+                    </button>
                     <button onClick={() => setShowSingleDeleteModal(true)} className="p-2 bg-red-50 text-red-600 rounded-full hover:bg-red-100 transition-colors">
                       <Trash2 size={20} />
                     </button>
@@ -654,11 +698,18 @@ const Dashboard: React.FC = () => {
                   )}
 
                   <div className="space-y-2">
-                    <p className="text-[10px] font-bold text-gray-400 mr-1">الصور</p>
+                    <p className="text-[10px] font-bold text-gray-400 mr-1">المرفقات</p>
                     <div className="grid grid-cols-2 gap-2">
-                      {selectedInvoice.image_urls.map((url, i) => (
-                        <a key={i} href={url} target="_blank" rel="noreferrer" className="rounded-2xl overflow-hidden border border-gray-100 aspect-square">
-                          <img src={url} alt="invoice" className="w-full h-full object-cover" />
+                      {(selectedInvoice.attachments?.length ? selectedInvoice.attachments : (selectedInvoice.image_urls || [])).map((url, i) => (
+                        <a key={i} href={url} target="_blank" rel="noreferrer" className="rounded-2xl overflow-hidden border border-gray-100 aspect-square flex items-center justify-center bg-gray-50">
+                          {url.toLowerCase().includes('.pdf') ? (
+                            <div className="flex flex-col items-center gap-2 text-center text-red-500 hover:text-red-600">
+                              <FileIcon size={32} />
+                              <span className="text-xs font-bold w-full truncate px-2" dir="ltr">ملف_سابق_{i+1}.pdf</span>
+                            </div>
+                          ) : (
+                            <img src={url} alt="invoice" className="w-full h-full object-cover" />
+                          )}
                         </a>
                       ))}
                     </div>
@@ -753,6 +804,25 @@ const Dashboard: React.FC = () => {
               </div>
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Edit Modal */}
+      <AnimatePresence>
+        {editingInvoice && (
+          <EditInvoiceModal
+            invoice={editingInvoice}
+            branchesMap={branches}
+            deliveryMap={deliveryCompanies}
+            onClose={() => setEditingInvoice(null)}
+            onSuccess={(updates) => {
+              setInvoices(prev => prev.map(inv => inv.id === editingInvoice.id ? { ...inv, ...updates } : inv));
+              if (selectedInvoice && selectedInvoice.id === editingInvoice.id) {
+                setSelectedInvoice({ ...selectedInvoice, ...updates } as Invoice);
+              }
+              setEditingInvoice(null);
+            }}
+          />
         )}
       </AnimatePresence>
 

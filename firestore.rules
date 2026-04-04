@@ -58,14 +58,18 @@ service cloud.firestore {
       allow read: if isAuthenticated();
 
       // إنشاء (الموظف يرفع فاتورة)
+      // Check for either image_urls (legacy) or attachments
       allow create: if isAuthenticated()
         && request.resource.data.employee_id == request.auth.uid
         && request.resource.data.invoice_number is string
         && request.resource.data.branch_id is string
-        && request.resource.data.image_urls is list;
+        && (
+          (request.resource.data.keys().hasAll(['attachments']) && request.resource.data.attachments is list) ||
+          (request.resource.data.keys().hasAll(['image_urls']) && request.resource.data.image_urls is list)
+        );
 
-      // تعديل / حذف (أدمن فقط)
-      allow update, delete: if isAdmin();
+      // تعديل / حذف (أدمن أو الموظف اللي رفعها)
+      allow update, delete: if isAdmin() || (isAuthenticated() && resource.data.employee_id == request.auth.uid);
     }
   }
 }

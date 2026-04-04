@@ -5,9 +5,10 @@ import { Invoice, Branch, DeliveryCompany } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale/ar';
-import { FileText, Calendar, Truck, Building2, Eye, X } from 'lucide-react';
+import { FileText, Calendar, Truck, Building2, Eye, X, Edit2, FileText as FileIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
+import { EditInvoiceModal } from '../../components/EditInvoiceModal';
 
 const Invoices: React.FC = () => {
   const { profile } = useAuth();
@@ -16,6 +17,7 @@ const Invoices: React.FC = () => {
   const [deliveryCompanies, setDeliveryCompanies] = useState<Record<string, DeliveryCompany>>({});
   const [loading, setLoading] = useState(true);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
 
   useEffect(() => {
     const fetchMetadata = async () => {
@@ -94,13 +96,20 @@ const Invoices: React.FC = () => {
               </div>
 
               <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                {invoice.image_urls.map((url, i) => (
+                {(invoice.attachments?.length ? invoice.attachments : (invoice.image_urls || [])).map((url, i) => (
                   <div
                     key={i}
                     onClick={() => setSelectedInvoice(invoice)}
-                    className="flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden border border-gray-100 cursor-pointer"
+                    className="flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden border border-gray-100 cursor-pointer flex items-center justify-center bg-gray-50"
                   >
-                    <img src={url} alt="invoice" className="w-full h-full object-cover" />
+                    {url.toLowerCase().includes('.pdf') ? (
+                      <div className="flex flex-col items-center gap-1">
+                        <FileIcon size={24} className="text-red-500" />
+                        <span className="text-[8px] font-bold text-gray-500">PDF</span>
+                      </div>
+                    ) : (
+                      <img src={url} alt="invoice" className="w-full h-full object-cover" />
+                    )}
                   </div>
                 ))}
               </div>
@@ -137,9 +146,19 @@ const Invoices: React.FC = () => {
               <div className="p-6 space-y-6">
                 <div className="flex justify-between items-center">
                   <h3 className="text-xl font-bold">تفاصيل الفاتورة</h3>
-                  <button onClick={() => setSelectedInvoice(null)} className="p-2 bg-gray-100 rounded-full">
-                    <X size={20} />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        setEditingInvoice(selectedInvoice);
+                      }}
+                      className="p-2 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors"
+                    >
+                      <Edit2 size={20} />
+                    </button>
+                    <button onClick={() => setSelectedInvoice(null)} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors">
+                      <X size={20} />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="space-y-4">
@@ -163,11 +182,18 @@ const Invoices: React.FC = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <p className="text-[10px] font-bold text-gray-400 mr-1">الصور</p>
+                    <p className="text-[10px] font-bold text-gray-400 mr-1">المرفقات</p>
                     <div className="grid grid-cols-2 gap-2">
-                      {selectedInvoice.image_urls.map((url, i) => (
-                        <a key={i} href={url} target="_blank" rel="noreferrer" className="rounded-2xl overflow-hidden border border-gray-100 aspect-square">
-                          <img src={url} alt="invoice" className="w-full h-full object-cover" />
+                      {(selectedInvoice.attachments?.length ? selectedInvoice.attachments : (selectedInvoice.image_urls || [])).map((url, i) => (
+                        <a key={i} href={url} target="_blank" rel="noreferrer" className="rounded-2xl overflow-hidden border border-gray-100 aspect-square flex items-center justify-center bg-gray-50">
+                          {url.toLowerCase().includes('.pdf') ? (
+                            <div className="flex flex-col items-center gap-2 text-center text-red-500 hover:text-red-600">
+                              <FileIcon size={32} />
+                              <span className="text-xs font-bold w-full truncate px-2" dir="ltr">ملف_سابق_{i+1}.pdf</span>
+                            </div>
+                          ) : (
+                            <img src={url} alt="invoice" className="w-full h-full object-cover" />
+                          )}
                         </a>
                       ))}
                     </div>
@@ -176,6 +202,24 @@ const Invoices: React.FC = () => {
               </div>
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+      {/* Edit Modal */}
+      <AnimatePresence>
+        {editingInvoice && (
+          <EditInvoiceModal
+            invoice={editingInvoice}
+            branchesMap={branches}
+            deliveryMap={deliveryCompanies}
+            onClose={() => setEditingInvoice(null)}
+            onSuccess={(updates) => {
+              setInvoices(prev => prev.map(inv => inv.id === editingInvoice.id ? { ...inv, ...updates } : inv));
+              if (selectedInvoice && selectedInvoice.id === editingInvoice.id) {
+                setSelectedInvoice({ ...selectedInvoice, ...updates });
+              }
+              setEditingInvoice(null);
+            }}
+          />
         )}
       </AnimatePresence>
     </div>
