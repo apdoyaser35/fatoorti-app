@@ -1,0 +1,68 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "A user of the system (Employee or Admin)",
+      "type": "object",
+      "properties": {
+        "username": { "type": "string", "description": "English characters only" },
+        "password": { "type": "string", "description": "Hashed password" },
+        "role": { "type": "string", "enum": ["admin", "employee"] },
+        "branch_id": { "type": "string", "description": "ID of the assigned branch" }
+      },
+      "required": ["username", "role"]
+    },
+    "Branch": {
+      "title": "Branch",
+      "description": "A restaurant branch",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "number": { "type": "string" },
+        "image_url": { "type": "string" }
+      },
+      "required": ["name"]
+    },
+    "DeliveryCompany": {
+      "title": "DeliveryCompany",
+      "description": "A delivery company",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" }
+      },
+      "required": ["name"]
+    },
+    "Invoice": {
+      "title": "Invoice",
+      "description": "A restaurant invoice or order",
+      "type": "object",
+      "properties": {
+        "invoice_number": { "type": "string", "description": "Format: YYYY-MM-DD-XXX" },
+        "date": { "type": "string", "format": "date-time" },
+        "branch_id": { "type": "string" },
+        "employee_id": { "type": "string" },
+        "delivery_company_id": { "type": "string" },
+        "image_urls": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["invoice_number", "date", "branch_id", "employee_id"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles and roles"
+    },
+    "/branches/{branchId}": {
+      "schema": "Branch",
+      "description": "Branch management"
+    },
+    "/delivery_companies/{companyId}": {
+      "schema": "DeliveryCompany",
+      "description": "Delivery companies management"
+    },
+    "/invoices/{invoiceId}": {
+      "schema": "Invoice",
+      "description": "Invoice and order management"
+    }
+  }
+}

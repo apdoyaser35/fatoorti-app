@@ -1,0 +1,71 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // =========================
+    // Helper Functions
+    // =========================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // =========================
+    // Users
+    // =========================
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+
+      allow create: if isOwner(userId)
+        && request.resource.data.role == 'employee';
+
+      allow update: if isAdmin()
+        || (isOwner(userId) && request.resource.data.role == resource.data.role);
+
+      allow delete: if isAdmin();
+    }
+
+    // =========================
+    // Branches
+    // =========================
+    match /branches/{branchId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // =========================
+    // Delivery Companies
+    // =========================
+    match /delivery_companies/{companyId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // =========================
+    // Invoices (🔥 المهم)
+    // =========================
+    match /invoices/{invoiceId} {
+
+      // قراءة (للسماح بجلب آخر فاتورة لإنشاء رقم تسلسلي)
+      allow read: if isAuthenticated();
+
+      // إنشاء (الموظف يرفع فاتورة)
+      allow create: if isAuthenticated()
+        && request.resource.data.employee_id == request.auth.uid
+        && request.resource.data.invoice_number is string
+        && request.resource.data.branch_id is string
+        && request.resource.data.image_urls is list;
+
+      // تعديل / حذف (أدمن فقط)
+      allow update, delete: if isAdmin();
+    }
+  }
+}
