@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { onAuthStateChanged, User } from 'firebase/auth';
+import { onAuthStateChanged, User, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { UserProfile } from '../types';
@@ -29,6 +29,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     let isMounted = true;
 
+    // Fallback: iOS Safari PWA sometimes clears indexedDB early or blocks it.
+    // We enforce persistence if localStorage says the user wanted to be remembered.
+    const enforcePersistence = async () => {
+      try {
+        if (localStorage.getItem('rememberedUser') === 'true') {
+          await setPersistence(auth, browserLocalPersistence);
+        }
+      } catch (err) {
+        console.error('Error enforcing persistence:', err);
+      }
+    };
+    
+    enforcePersistence();
+
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (!isMounted) return;
 
@@ -36,6 +50,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // to prevent any brief window where loading=false + profile=null
       setLoading(true);
       setUser(currentUser);
+
+      // Fallback timeout: force loading=false after 3 seconds 
+      // so iOS PWA never gets stuck on white screen
+      const timeoutId = setTimeout(() => {
+        if (isMounted) {
+          console.warn('Auth state loading timeout reached');
+          setLoading(false);
+          setIsAuthReady(true);
+        }
+      }, 3000);
 
       if (currentUser) {
         try {
@@ -50,14 +74,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.error("Error fetching user profile:", error);
           if (!isMounted) return;
           setProfile(null);
+        } finally {
+          if (isMounted) {
+            clearTimeout(timeoutId);
+            setLoading(false);
+            setIsAuthReady(true);
+          }
         }
       } else {
         setProfile(null);
-      }
-
-      if (isMounted) {
-        setLoading(false);
-        setIsAuthReady(true);
+        if (isMounted) {
+          clearTimeout(timeoutId);
+          setLoading(false);
+          setIsAuthReady(true);
+        }
       }
     });
 

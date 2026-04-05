@@ -37,8 +37,10 @@ const Login: React.FC = () => {
 
     try {
       if (rememberMe) {
+        localStorage.setItem('rememberedUser', 'true');
         await setPersistence(auth, browserLocalPersistence);
       } else {
+        localStorage.removeItem('rememberedUser');
         await setPersistence(auth, browserSessionPersistence);
       }
 
