@@ -27,8 +27,18 @@ const Invoices: React.FC = () => {
   useEffect(() => {
     if (!profile?.uid) return;
 
+    let isMounted = true;
+
     const fetchInvoices = async () => {
       setLoading(true);
+      
+      const timeoutId = setTimeout(() => {
+        if (isMounted) {
+          console.warn('Invoices loading timeout reached');
+          setLoading(false);
+        }
+      }, 3000);
+
       try {
         const q = query(
           collection(db, 'invoices'),
@@ -37,14 +47,23 @@ const Invoices: React.FC = () => {
           limit(20)
         );
         const snap = await getDocs(q);
-        setInvoices(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Invoice)));
+        if (isMounted) {
+          setInvoices(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Invoice)));
+        }
       } catch (err) {
         console.error(err);
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          clearTimeout(timeoutId);
+          setLoading(false);
+        }
       }
     };
     fetchInvoices();
+    
+    return () => {
+      isMounted = false;
+    };
   }, [profile]);
 
   return (
@@ -56,7 +75,7 @@ const Invoices: React.FC = () => {
 
       <div className="space-y-4">
         {loading ? (
-          <div className="flex justify-center py-20">
+          <div className="flex justify-center py-20 pointer-events-none opacity-50 relative z-0">
             <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
           </div>
         ) : invoices.length === 0 ? (
