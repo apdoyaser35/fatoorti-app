@@ -6,27 +6,17 @@ import { User, Shield, UserCircle, Edit2, Trash2, X, Check, Building2 } from 'lu
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 
+import { useData } from '../../contexts/DataContext';
+
 const Users: React.FC = () => {
-  const [users, setUsers] = useState<UserProfile[]>([]);
-  const [branches, setBranches] = useState<Branch[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { users, branches, loadingUsers: loading, refreshUsers, prefetchData, isPrefetched } = useData();
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
   const [selectedBranch, setSelectedBranch] = useState('');
   const [selectedRole, setSelectedRole] = useState<'admin' | 'employee'>('employee');
 
   useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
-    setLoading(true);
-    const usersSnap = await getDocs(collection(db, 'users'));
-    setUsers(usersSnap.docs.map(doc => ({ uid: doc.id, ...doc.data() } as UserProfile)));
-
-    const branchesSnap = await getDocs(collection(db, 'branches'));
-    setBranches(branchesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Branch)));
-    setLoading(false);
-  };
+    if (!isPrefetched) prefetchData();
+  }, [isPrefetched, prefetchData]);
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,13 +26,13 @@ const Users: React.FC = () => {
       branch_id: selectedBranch
     });
     setEditingUser(null);
-    fetchData();
+    await refreshUsers();
   };
 
   const handleDelete = async (uid: string) => {
     if (window.confirm('هل أنت متأكد من حذف هذا المستخدم؟')) {
       await deleteDoc(doc(db, 'users', uid));
-      fetchData();
+      await refreshUsers();
     }
   };
 
@@ -55,9 +45,26 @@ const Users: React.FC = () => {
 
       <div className="space-y-4">
         {loading ? (
-          <div className="flex justify-center py-20">
-            <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-          </div>
+          <>
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-white p-4 md:p-5 rounded-2xl md:rounded-3xl border border-gray-100 shadow-sm flex justify-between items-center animate-pulse">
+                <div className="flex items-center gap-4 w-full">
+                  <div className="w-12 h-12 rounded-2xl bg-gray-100"></div>
+                  <div className="space-y-2 flex-1">
+                    <div className="h-5 bg-gray-100 rounded-md w-1/3"></div>
+                    <div className="flex gap-2">
+                      <div className="h-4 bg-gray-100 rounded-full w-12"></div>
+                      <div className="h-4 bg-gray-100 rounded-full w-16"></div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <div className="w-8 h-8 bg-gray-100 rounded-full"></div>
+                  <div className="w-8 h-8 bg-gray-100 rounded-full"></div>
+                </div>
+              </div>
+            ))}
+          </>
         ) : users.length === 0 ? (
           <div className="text-center py-20 text-gray-400 font-bold">لا يوجد مستخدمين مسجلين</div>
         ) : (

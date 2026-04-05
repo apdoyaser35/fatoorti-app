@@ -9,9 +9,10 @@ import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 import OptimizedImage from '../../components/OptimizedImage';
 
+import { useData } from '../../contexts/DataContext';
+
 const Branches: React.FC = () => {
-  const [branches, setBranches] = useState<Branch[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { branches, loadingBranches: loading, refreshBranches, prefetchData, isPrefetched } = useData();
   const [submitting, setSubmitting] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
   const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
@@ -21,15 +22,10 @@ const Branches: React.FC = () => {
   const [imagePreview, setImagePreview] = useState<string>('');
 
   useEffect(() => {
-    fetchBranches();
-  }, []);
-
-  const fetchBranches = async () => {
-    setLoading(true);
-    const snap = await getDocs(collection(db, 'branches'));
-    setBranches(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Branch)));
-    setLoading(false);
-  };
+    if (!isPrefetched) {
+      prefetchData();
+    }
+  }, [isPrefetched, prefetchData]);
 
   const resetForm = () => {
     setShowAdd(false);
@@ -69,7 +65,7 @@ const Branches: React.FC = () => {
       }
       await addDoc(collection(db, 'branches'), { name, number, image_url: imageUrl });
       resetForm();
-      fetchBranches();
+      await refreshBranches();
     } catch (err) {
       console.error(err);
       alert('حدث خطأ أثناء حفظ الفرع');
@@ -90,7 +86,7 @@ const Branches: React.FC = () => {
       }
       await updateDoc(doc(db, 'branches', editingBranch.id), { name, number, image_url: imageUrl });
       resetForm();
-      fetchBranches();
+      await refreshBranches();
     } catch (err) {
       console.error(err);
       alert('حدث خطأ أثناء تحديث الفرع');
@@ -102,7 +98,7 @@ const Branches: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (window.confirm('هل أنت متأكد من حذف هذا الفرع؟')) {
       await deleteDoc(doc(db, 'branches', id));
-      fetchBranches();
+      await refreshBranches();
     }
   };
 
@@ -114,9 +110,23 @@ const Branches: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {loading ? (
-          <div className="md:col-span-2 flex justify-center py-20">
-            <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-          </div>
+          <>
+            {[1, 2, 3].map(i => (
+              <div key={i} className="bg-white p-3 md:p-4 rounded-[24px] md:rounded-[28px] border border-gray-100 shadow-sm flex items-center justify-between gap-3 md:gap-4 animate-pulse">
+                <div className="flex items-center gap-4 w-full">
+                  <div className="w-16 h-16 rounded-2xl bg-gray-100 shrink-0"></div>
+                  <div className="space-y-2 flex-1">
+                    <div className="h-5 bg-gray-100 rounded-md w-1/3"></div>
+                    <div className="h-3 bg-gray-100 rounded-md w-1/4"></div>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <div className="w-8 h-8 bg-gray-100 rounded-full"></div>
+                  <div className="w-8 h-8 bg-gray-100 rounded-full"></div>
+                </div>
+              </div>
+            ))}
+          </>
         ) : branches.length === 0 ? (
           <div className="md:col-span-2 text-center py-20 text-gray-400 font-bold">لا توجد فروع مضافة</div>
         ) : (

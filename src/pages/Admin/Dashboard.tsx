@@ -9,12 +9,11 @@ import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { EditInvoiceModal } from '../../components/EditInvoiceModal';
 import OptimizedImage from '../../components/OptimizedImage';
+import { useData } from '../../contexts/DataContext';
 
 const Dashboard: React.FC = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [branches, setBranches] = useState<Record<string, Branch>>({});
-  const [deliveryCompanies, setDeliveryCompanies] = useState<Record<string, DeliveryCompany>>({});
-  const [employees, setEmployees] = useState<Record<string, UserProfile>>({});
+  const { branchesMap: branches, deliveryMap: deliveryCompanies, usersMap: employees, prefetchData } = useData();
   const [loading, setLoading] = useState(true);
   const [filterStartDate, setFilterStartDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
   const [filterEndDate, setFilterEndDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
@@ -34,24 +33,8 @@ const Dashboard: React.FC = () => {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchMetadata = async () => {
-      const branchesSnap = await getDocs(collection(db, 'branches'));
-      const bMap: Record<string, Branch> = {};
-      branchesSnap.forEach(doc => bMap[doc.id] = { id: doc.id, ...doc.data() } as Branch);
-      setBranches(bMap);
-
-      const deliverySnap = await getDocs(collection(db, 'delivery_companies'));
-      const dMap: Record<string, DeliveryCompany> = {};
-      deliverySnap.forEach(doc => dMap[doc.id] = { id: doc.id, ...doc.data() } as DeliveryCompany);
-      setDeliveryCompanies(dMap);
-
-      const employeesSnap = await getDocs(collection(db, 'users'));
-      const eMap: Record<string, UserProfile> = {};
-      employeesSnap.forEach(doc => eMap[doc.id] = { uid: doc.id, ...doc.data() } as UserProfile);
-      setEmployees(eMap);
-    };
-    fetchMetadata();
-  }, []);
+    prefetchData();
+  }, [prefetchData]);
 
   useEffect(() => {
     const fetchInvoices = async () => {

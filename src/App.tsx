@@ -1,6 +1,7 @@
 import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { DataProvider } from './contexts/DataContext';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -68,8 +69,9 @@ const RootRedirect: React.FC = () => {
 export default function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Suspense fallback={<SuspenseFallback />}>
+      <DataProvider>
+        <Router>
+          <Suspense fallback={<SuspenseFallback />}>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
@@ -128,9 +130,10 @@ export default function App() {
 
           <Route path="/" element={<RootRedirect />} />
           <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
-        </Suspense>
-      </Router>
+          </Routes>
+          </Suspense>
+        </Router>
+      </DataProvider>
     </AuthProvider>
   );
 }

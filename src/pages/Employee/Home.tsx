@@ -12,11 +12,11 @@ import { cn } from '../../lib/utils';
 import OptimizedImage from '../../components/OptimizedImage';
 import { format, startOfDay, endOfDay } from 'date-fns';
 import { ar } from 'date-fns/locale/ar';
+import { useData } from '../../contexts/DataContext';
 
 const Home: React.FC = () => {
   const { profile } = useAuth();
-  const [branches, setBranches] = useState<Branch[]>([]);
-  const [deliveryCompanies, setDeliveryCompanies] = useState<DeliveryCompany[]>([]);
+  const { branches, deliveryCompanies, prefetchData, isPrefetched } = useData();
   const [selectedBranch, setSelectedBranch] = useState<string>(profile?.branch_id || '');
   const [selectedDelivery, setSelectedDelivery] = useState<string>('');
   const [phoneNumber, setPhoneNumber] = useState<string>(profile?.phone_number || '');
@@ -28,20 +28,8 @@ const Home: React.FC = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const branchesSnap = await getDocs(collection(db, 'branches'));
-        setBranches(branchesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Branch)));
-
-        const deliverySnap = await getDocs(collection(db, 'delivery_companies'));
-        setDeliveryCompanies(deliverySnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as DeliveryCompany)));
-      } catch (err) {
-        console.error(err);
-        handleFirestoreError(err, OperationType.LIST, 'branches/delivery_companies');
-      }
-    };
-    fetchData();
-  }, []);
+    if (!isPrefetched) prefetchData();
+  }, [isPrefetched, prefetchData]);
 
   useEffect(() => {
     if (profile?.branch_id) {

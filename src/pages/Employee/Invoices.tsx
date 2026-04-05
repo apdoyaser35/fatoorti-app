@@ -10,30 +10,19 @@ import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { EditInvoiceModal } from '../../components/EditInvoiceModal';
 import OptimizedImage from '../../components/OptimizedImage';
+import { useData } from '../../contexts/DataContext';
 
 const Invoices: React.FC = () => {
   const { profile } = useAuth();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [branches, setBranches] = useState<Record<string, Branch>>({});
-  const [deliveryCompanies, setDeliveryCompanies] = useState<Record<string, DeliveryCompany>>({});
+  const { branchesMap: branches, deliveryMap: deliveryCompanies, prefetchData, isPrefetched } = useData();
   const [loading, setLoading] = useState(true);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
 
   useEffect(() => {
-    const fetchMetadata = async () => {
-      const branchesSnap = await getDocs(collection(db, 'branches'));
-      const bMap: Record<string, Branch> = {};
-      branchesSnap.forEach(doc => bMap[doc.id] = { id: doc.id, ...doc.data() } as Branch);
-      setBranches(bMap);
-
-      const deliverySnap = await getDocs(collection(db, 'delivery_companies'));
-      const dMap: Record<string, DeliveryCompany> = {};
-      deliverySnap.forEach(doc => dMap[doc.id] = { id: doc.id, ...doc.data() } as DeliveryCompany);
-      setDeliveryCompanies(dMap);
-    };
-    fetchMetadata();
-  }, []);
+    if (!isPrefetched) prefetchData();
+  }, [isPrefetched, prefetchData]);
 
   useEffect(() => {
     if (!profile?.uid) return;

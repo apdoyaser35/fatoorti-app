@@ -9,9 +9,10 @@ import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 import OptimizedImage from '../../components/OptimizedImage';
 
+import { useData } from '../../contexts/DataContext';
+
 const DeliveryCompanies: React.FC = () => {
-  const [companies, setCompanies] = useState<DeliveryCompany[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { deliveryCompanies: companies, loadingDelivery: loading, refreshDelivery, prefetchData, isPrefetched } = useData();
   const [submitting, setSubmitting] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
   const [editingCompany, setEditingCompany] = useState<DeliveryCompany | null>(null);
@@ -20,15 +21,10 @@ const DeliveryCompanies: React.FC = () => {
   const [imagePreview, setImagePreview] = useState<string>('');
 
   useEffect(() => {
-    fetchCompanies();
-  }, []);
-
-  const fetchCompanies = async () => {
-    setLoading(true);
-    const snap = await getDocs(collection(db, 'delivery_companies'));
-    setCompanies(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as DeliveryCompany)));
-    setLoading(false);
-  };
+    if (!isPrefetched) {
+      prefetchData();
+    }
+  }, [isPrefetched, prefetchData]);
 
   const resetForm = () => {
     setShowAdd(false);
@@ -67,7 +63,7 @@ const DeliveryCompanies: React.FC = () => {
       }
       await addDoc(collection(db, 'delivery_companies'), { name, image_url: imageUrl });
       resetForm();
-      fetchCompanies();
+      await refreshDelivery();
     } catch (err) {
       console.error(err);
       alert('حدث خطأ أثناء إضافة الشركة');
@@ -88,7 +84,7 @@ const DeliveryCompanies: React.FC = () => {
       }
       await updateDoc(doc(db, 'delivery_companies', editingCompany.id), { name, image_url: imageUrl });
       resetForm();
-      fetchCompanies();
+      await refreshDelivery();
     } catch (err) {
       console.error(err);
       alert('حدث خطأ أثناء تعديل بيانات الشركة');
@@ -100,7 +96,7 @@ const DeliveryCompanies: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (window.confirm('هل أنت متأكد من حذف هذه الشركة؟')) {
       await deleteDoc(doc(db, 'delivery_companies', id));
-      fetchCompanies();
+      await refreshDelivery();
     }
   };
 
@@ -112,9 +108,20 @@ const DeliveryCompanies: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {loading ? (
-          <div className="md:col-span-2 flex justify-center py-20">
-            <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-          </div>
+          <>
+            {[1, 2, 3].map(i => (
+              <div key={i} className="bg-white p-3 md:p-4 rounded-[24px] md:rounded-[28px] border border-gray-100 shadow-sm flex items-center justify-between gap-3 md:gap-4 animate-pulse">
+                <div className="flex items-center gap-4 w-full">
+                  <div className="w-16 h-16 rounded-2xl bg-gray-100 shrink-0"></div>
+                  <div className="h-5 bg-gray-100 rounded-md w-1/3"></div>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <div className="w-8 h-8 bg-gray-100 rounded-full"></div>
+                  <div className="w-8 h-8 bg-gray-100 rounded-full"></div>
+                </div>
+              </div>
+            ))}
+          </>
         ) : companies.length === 0 ? (
           <div className="md:col-span-2 text-center py-20 text-gray-400 font-bold">لا توجد شركات مضافة</div>
         ) : (
