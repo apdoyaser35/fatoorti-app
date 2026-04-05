@@ -6,7 +6,6 @@ import { auth, db, handleFirestoreError, OperationType } from '../firebase';
 import { motion } from 'motion/react';
 import { UserPlus, User, Lock, AlertCircle } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { UserProfile } from '../types';
 
 const Signup: React.FC = () => {
   const [username, setUsername] = useState('');

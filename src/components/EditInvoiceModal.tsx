@@ -49,7 +49,7 @@ export const EditInvoiceModal: React.FC<EditInvoiceModalProps> = ({ invoice, bra
       const processedFiles = await Promise.all(
         newFiles.map(async (file: File) => {
           if (file.type === 'application/pdf') return file;
-          return await imageCompression(file, { maxSizeMB: 1, maxWidthOrHeight: 1920, useWebWorker: true });
+          return await imageCompression(file, { maxSizeMB: 0.5, maxWidthOrHeight: 1600, useWebWorker: true });
         })
       );
       
@@ -68,7 +68,7 @@ export const EditInvoiceModal: React.FC<EditInvoiceModalProps> = ({ invoice, bra
       const file = e.target.files[0];
       let processedFile = file;
       if (file.type !== 'application/pdf') {
-        processedFile = await imageCompression(file, { maxSizeMB: 1, maxWidthOrHeight: 1920, useWebWorker: true });
+        processedFile = await imageCompression(file, { maxSizeMB: 0.5, maxWidthOrHeight: 1600, useWebWorker: true });
       }
       
       setFiles(prev => {
@@ -106,16 +106,13 @@ export const EditInvoiceModal: React.FC<EditInvoiceModalProps> = ({ invoice, bra
     setError('');
 
     try {
-      const finalAttachmentUrls: string[] = [];
-
-      for (const file of files) {
-        if (typeof file === 'string') {
-          finalAttachmentUrls.push(file); // existing URL
-        } else {
-          const url = await uploadImageToCloudinary(file);
-          finalAttachmentUrls.push(url);
-        }
-      }
+      const finalAttachmentUrls = await Promise.all(
+        files.map(file =>
+          typeof file === 'string'
+            ? Promise.resolve(file)
+            : uploadImageToCloudinary(file)
+        )
+      );
 
       const updates: Partial<Invoice> = {
         branch_id: selectedBranch,

@@ -1,19 +1,23 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 
-// Employee Pages
-import EmployeeHome from './pages/Employee/Home';
-import EmployeeInvoices from './pages/Employee/Invoices';
+// Lazy-loaded pages — only loaded after login (not on critical path)
+const EmployeeHome = React.lazy(() => import('./pages/Employee/Home'));
+const EmployeeInvoices = React.lazy(() => import('./pages/Employee/Invoices'));
+const AdminDashboard = React.lazy(() => import('./pages/Admin/Dashboard'));
+const AdminBranches = React.lazy(() => import('./pages/Admin/Branches'));
+const AdminDelivery = React.lazy(() => import('./pages/Admin/DeliveryCompanies'));
+const AdminUsers = React.lazy(() => import('./pages/Admin/Users'));
 
-// Admin Pages
-import AdminDashboard from './pages/Admin/Dashboard';
-import AdminBranches from './pages/Admin/Branches';
-import AdminDelivery from './pages/Admin/DeliveryCompanies';
-import AdminUsers from './pages/Admin/Users';
+const SuspenseFallback = () => (
+  <div className="min-h-screen flex items-center justify-center bg-white">
+    <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+  </div>
+);
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode; role?: 'admin' | 'employee' }> = ({ children, role }) => {
   const { user, profile, loading } = useAuth();
@@ -65,6 +69,7 @@ export default function App() {
   return (
     <AuthProvider>
       <Router>
+        <Suspense fallback={<SuspenseFallback />}>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
@@ -124,6 +129,7 @@ export default function App() {
           <Route path="/" element={<RootRedirect />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
+        </Suspense>
       </Router>
     </AuthProvider>
   );

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { signInWithEmailAndPassword, setPersistence, browserLocalPersistence, browserSessionPersistence } from 'firebase/auth';
 import { auth } from '../firebase';
+import { useAuth } from '../contexts/AuthContext';
 import { motion } from 'motion/react';
 import { LogIn, User, Lock, AlertCircle } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -13,9 +14,24 @@ const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
+  const { user, profile, loading: authLoading } = useAuth();
+  const isSubmitting = useRef(false);
+
+  // Redirect when auth state is fully ready (user + profile loaded)
+  useEffect(() => {
+    if (!authLoading && user && profile) {
+      const target = profile.role === 'admin' ? '/admin' : '/employee';
+      navigate(target, { replace: true });
+    }
+  }, [authLoading, user, profile, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Prevent double submit
+    if (isSubmitting.current || loading) return;
+    isSubmitting.current = true;
+
     setError('');
     setLoading(true);
 
@@ -26,15 +42,17 @@ const Login: React.FC = () => {
         await setPersistence(auth, browserSessionPersistence);
       }
 
-      const email = `${username.toLowerCase()}@invoice.app`;
+      const email = `${username.toLowerCase().trim()}@invoice.app`;
       await signInWithEmailAndPassword(auth, email, password);
-      
-      navigate('/');
+
+      // Do NOT navigate here — the useEffect above will handle it
+      // once onAuthStateChanged fires and profile is loaded.
+      // Keep loading=true so the form stays in its loading state.
     } catch (err: any) {
       setError('خطأ في اسم المستخدم أو كلمة المرور');
       console.error(err);
-    } finally {
       setLoading(false);
+      isSubmitting.current = false;
     }
   };
 

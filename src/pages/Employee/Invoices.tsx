@@ -9,6 +9,7 @@ import { FileText, Calendar, Truck, Building2, Eye, X, Edit2, FileText as FileIc
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { EditInvoiceModal } from '../../components/EditInvoiceModal';
+import OptimizedImage from '../../components/OptimizedImage';
 
 const Invoices: React.FC = () => {
   const { profile } = useAuth();
@@ -91,7 +92,7 @@ const Invoices: React.FC = () => {
                   <p className="text-xs text-gray-500">{format(new Date(invoice.date), 'dd MMMM yyyy - hh:mm a', { locale: ar })}</p>
                 </div>
                 <div className="bg-gray-50 px-3 py-1 rounded-full">
-                  <span className="text-[10px] font-bold text-gray-500">{deliveryCompanies[invoice.delivery_company_id]?.name}</span>
+                <span className="text-[10px] font-bold text-gray-500">{invoice.delivery_company_id ? (deliveryCompanies[invoice.delivery_company_id]?.name || 'غير معروف') : 'بدون توصيل'}</span>
                 </div>
               </div>
 
@@ -108,7 +109,7 @@ const Invoices: React.FC = () => {
                         <span className="text-[8px] font-bold text-gray-500">PDF</span>
                       </div>
                     ) : (
-                      <img src={url} alt="invoice" className="w-full h-full object-cover" />
+                      <OptimizedImage src={url} alt="invoice" className="w-full h-full object-cover" cloudinaryWidth={160} />
                     )}
                   </div>
                 ))}
@@ -173,7 +174,7 @@ const Invoices: React.FC = () => {
                     </div>
                     <div className="bg-gray-50 p-4 rounded-2xl">
                       <p className="text-[10px] font-bold text-gray-400 mb-1">شركة التوصيل</p>
-                      <p className="font-bold text-gray-900">{deliveryCompanies[selectedInvoice.delivery_company_id]?.name}</p>
+                      <p className="font-bold text-gray-900">{selectedInvoice.delivery_company_id ? (deliveryCompanies[selectedInvoice.delivery_company_id]?.name || 'غير معروف') : 'بدون توصيل'}</p>
                     </div>
                     <div className="bg-gray-50 p-4 rounded-2xl">
                       <p className="text-[10px] font-bold text-gray-400 mb-1">التاريخ</p>
@@ -196,7 +197,7 @@ const Invoices: React.FC = () => {
                               <span className="text-xs font-bold w-full truncate px-2" dir="ltr">ملف_سابق_{i+1}.pdf</span>
                             </div>
                           ) : (
-                            <img src={url} alt="invoice" className="w-full h-full object-cover" />
+                            <OptimizedImage src={url} alt="invoice" className="w-full h-full object-cover" cloudinaryWidth={400} />
                           )}
                         </a>
                       ))}

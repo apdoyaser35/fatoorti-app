@@ -27,25 +27,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isAuthReady, setIsAuthReady] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
+
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (!isMounted) return;
+
+      // Set loading=true at the start of every auth state change
+      // to prevent any brief window where loading=false + profile=null
+      setLoading(true);
       setUser(currentUser);
+
       if (currentUser) {
         try {
           const profileDoc = await getDoc(doc(db, 'users', currentUser.uid));
+          if (!isMounted) return;
           if (profileDoc.exists()) {
             setProfile(profileDoc.data() as UserProfile);
+          } else {
+            setProfile(null);
           }
         } catch (error) {
           console.error("Error fetching user profile:", error);
+          if (!isMounted) return;
+          setProfile(null);
         }
       } else {
         setProfile(null);
       }
-      setLoading(false);
-      setIsAuthReady(true);
+
+      if (isMounted) {
+        setLoading(false);
+        setIsAuthReady(true);
+      }
     });
 
-    return () => unsubscribe();
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
   }, []);
 
   return (

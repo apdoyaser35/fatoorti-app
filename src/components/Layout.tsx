@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, FileText, Settings, Users, Building2, Truck, LogOut } from 'lucide-react';
+import { Home, FileText, Users, Building2, Truck, LogOut } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { auth } from '../firebase';
 import { cn } from '../lib/utils';
@@ -87,4 +87,4 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   );
 };
 
-export default Layout;
+export default React.memo(Layout);

@@ -1,15 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { collection, query, where, getDocs, orderBy, limit, startAfter, Timestamp, deleteDoc, doc } from 'firebase/firestore';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { collection, query, where, getDocs, orderBy, limit, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { Invoice, Branch, DeliveryCompany, UserProfile } from '../../types';
 import { format, startOfDay, endOfDay, subDays } from 'date-fns';
 import { ar } from 'date-fns/locale/ar';
-import { Search, Calendar, Filter, Download, FileSpreadsheet, Archive, ChevronLeft, ChevronRight, Eye, MoreVertical, X, ShieldAlert, Trash2, Edit2, FileText as FileIcon } from 'lucide-react';
+import { Search, Calendar, Filter, Download, Archive, Eye, X, ShieldAlert, Trash2, Edit2, FileText as FileIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
-import JSZip from 'jszip';
-import html2pdf from 'html2pdf.js';
 import { EditInvoiceModal } from '../../components/EditInvoiceModal';
+import OptimizedImage from '../../components/OptimizedImage';
 
 const Dashboard: React.FC = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -93,15 +92,25 @@ const Dashboard: React.FC = () => {
     fetchInvoices();
   }, [filterStartDate, filterEndDate, filterBranch, filterDelivery]);
 
+  // Memoize grouped invoices to avoid recalculating on every render
+  const groupedInvoices = useMemo(() => {
+    const groups: Record<string, Invoice[]> = {};
+    invoices.forEach(inv => {
+      const d = format(new Date(inv.date), 'yyyy-MM-dd');
+      if (!groups[d]) groups[d] = [];
+      groups[d].push(inv);
+    });
+    return Object.entries(groups).sort((a, b) => b[0].localeCompare(a[0]));
+  }, [invoices]);
 
-
-  const archiveImages = async () => {
+  const archiveImages = useCallback(async () => {
     setLoading(true);
-    const zip = new JSZip();
-    const folderName = filterStartDate === filterEndDate ? filterStartDate : `${filterStartDate}_to_${filterEndDate}`;
-    const folder = zip.folder(`Invoices_Data_${folderName}`);
-    
     try {
+      const JSZip = (await import('jszip')).default;
+      const zip = new JSZip();
+      const folderName = filterStartDate === filterEndDate ? filterStartDate : `${filterStartDate}_to_${filterEndDate}`;
+      const folder = zip.folder(`Invoices_Data_${folderName}`);
+      
       for (const inv of invoices) {
         const attachs = inv.attachments?.length ? inv.attachments : (inv.image_urls || []);
         for (let i = 0; i < attachs.length; i++) {
@@ -131,12 +140,13 @@ const Dashboard: React.FC = () => {
       link.href = URL.createObjectURL(content);
       link.download = `Invoices_Data_${folderName}.zip`;
       link.click();
+      URL.revokeObjectURL(link.href);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [invoices, filterStartDate, filterEndDate, branches, employees, deliveryCompanies]);
 
   const preloadImages = (urls: string[]) => {
     return Promise.all(
@@ -152,7 +162,7 @@ const Dashboard: React.FC = () => {
     );
   };
 
-  const handleExportBackup = async () => {
+  const handleExportBackup = useCallback(async () => {
     setBackupLoading(true);
     setBackupSuccess(false);
     
@@ -177,6 +187,9 @@ const Dashboard: React.FC = () => {
       }
       
       setToastMessage('جاري تجهيز النسخة الاحتياطية (يرجى الانتظار)...');
+
+      // Dynamic import — html2pdf.js (~500KB) only loads when user clicks backup
+      const html2pdf = (await import('html2pdf.js')).default;
       
       const branchGroups: Record<string, Invoice[]> = {};
       backupInvoices.forEach(inv => {
@@ -298,7 +311,7 @@ const Dashboard: React.FC = () => {
       setBackupLoading(false);
       setTimeout(() => setToastMessage(null), 4000);
     }
-  };
+  }, [backupStart, backupEnd, branches, employees, deliveryCompanies]);
 
   const handleDeleteData = async () => {
     setBackupLoading(true);
@@ -464,14 +477,7 @@ const Dashboard: React.FC = () => {
             <p className="text-gray-400 font-bold">لا توجد فواتير لهذه الفترة</p>
           </div>
         ) : (
-          Object.entries(
-            invoices.reduce((acc, inv) => {
-              const d = format(new Date(inv.date), 'yyyy-MM-dd');
-              if (!acc[d]) acc[d] = [];
-              acc[d].push(inv);
-              return acc;
-            }, {} as Record<string, Invoice[]>)
-          ).sort((a, b) => b[0].localeCompare(a[0]))
+          groupedInvoices
           .map(([dateKey, dayInvoices]) => (
             <div key={dateKey} className="space-y-4">
               <div className="flex items-center justify-between border-b border-gray-100 pb-2">
@@ -519,7 +525,7 @@ const Dashboard: React.FC = () => {
                               <span className="text-[8px] font-bold text-gray-500">PDF</span>
                             </div>
                           ) : (
-                            <img src={url} alt="invoice" className="w-full h-full object-cover" />
+                            <OptimizedImage src={url} alt="invoice" className="w-full h-full object-cover" cloudinaryWidth={160} />
                           )}
                         </div>
                       ))}
@@ -711,7 +717,7 @@ const Dashboard: React.FC = () => {
                               <span className="text-xs font-bold w-full truncate px-2" dir="ltr">ملف_سابق_{i+1}.pdf</span>
                             </div>
                           ) : (
-                            <img src={url} alt="invoice" className="w-full h-full object-cover" />
+                            <OptimizedImage src={url} alt="invoice" className="w-full h-full object-cover" cloudinaryWidth={400} />
                           )}
                         </a>
                       ))}

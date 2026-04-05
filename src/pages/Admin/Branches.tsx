@@ -7,6 +7,7 @@ import { Plus, Trash2, Edit2, X, Check, Building2, MapPin, Camera, Loader2 } fro
 import imageCompression from 'browser-image-compression';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
+import OptimizedImage from '../../components/OptimizedImage';
 
 const Branches: React.FC = () => {
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -43,7 +44,7 @@ const Branches: React.FC = () => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       const compressed = await imageCompression(file, {
-        maxSizeMB: 1,
+        maxSizeMB: 0.5,
         maxWidthOrHeight: 1024,
         useWebWorker: true,
       });
@@ -128,7 +129,7 @@ const Branches: React.FC = () => {
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-2xl overflow-hidden bg-primary/10 flex items-center justify-center shrink-0 shadow-inner">
                   {branch.image_url ? (
-                    <img src={branch.image_url} alt={branch.name} className="w-full h-full object-cover" />
+                    <OptimizedImage src={branch.image_url} alt={branch.name} className="w-full h-full object-cover" cloudinaryWidth={128} />
                   ) : (
                     <Building2 size={28} className="text-primary" />
                   )}

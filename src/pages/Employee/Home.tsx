@@ -9,6 +9,7 @@ import imageCompression from 'browser-image-compression';
 import { Camera, Upload, X, CheckCircle2, AlertCircle, Loader2, FileText as FileIcon, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
+import OptimizedImage from '../../components/OptimizedImage';
 import { format, startOfDay, endOfDay } from 'date-fns';
 import { ar } from 'date-fns/locale/ar';
 
@@ -55,8 +56,8 @@ const Home: React.FC = () => {
         newFiles.map(async (file: File) => {
           if (file.type === 'application/pdf') return file;
           const compressed = await imageCompression(file, {
-            maxSizeMB: 1,
-            maxWidthOrHeight: 1920,
+            maxSizeMB: 0.5,
+            maxWidthOrHeight: 1600,
             useWebWorker: true
           });
           return compressed;
@@ -78,7 +79,7 @@ const Home: React.FC = () => {
       const file = e.target.files[0];
       let processedFile = file;
       if (file.type !== 'application/pdf') {
-        processedFile = await imageCompression(file, { maxSizeMB: 1, maxWidthOrHeight: 1920, useWebWorker: true });
+        processedFile = await imageCompression(file, { maxSizeMB: 0.5, maxWidthOrHeight: 1600, useWebWorker: true });
       }
       
       setFiles(prev => {
@@ -148,12 +149,9 @@ const Home: React.FC = () => {
 
     try {
       const invoiceNumber = await generateInvoiceNumber();
-      const attachmentUrls: string[] = [];
-
-      for (const file of files) {
-        const url = await uploadImageToCloudinary(file);
-        attachmentUrls.push(url);
-      }
+      const attachmentUrls = await Promise.all(
+        files.map(file => uploadImageToCloudinary(file))
+      );
 
       const now = new Date();
       const invoiceData: any = {
@@ -247,7 +245,7 @@ const Home: React.FC = () => {
               >
                 <div className="w-12 h-12 shrink-0 rounded-[14px] bg-primary/10 flex items-center justify-center overflow-hidden">
                   {branch.image_url ? (
-                    <img src={branch.image_url} alt={branch.name} className="w-full h-full object-cover" />
+                    <OptimizedImage src={branch.image_url} alt={branch.name} className="w-full h-full object-cover" cloudinaryWidth={96} />
                   ) : (
                     <div className="w-6 h-6 rounded-md border-2 border-primary" />
                   )}
@@ -284,7 +282,7 @@ const Home: React.FC = () => {
               >
                 <div className="w-12 h-12 shrink-0 rounded-[14px] bg-primary/10 flex items-center justify-center overflow-hidden">
                   {company.image_url ? (
-                    <img src={company.image_url} alt={company.name} className="w-full h-full object-cover" />
+                    <OptimizedImage src={company.image_url} alt={company.name} className="w-full h-full object-cover" cloudinaryWidth={96} />
                   ) : (
                     <div className="w-6 h-6 rounded-full border-2 border-primary" />
                   )}

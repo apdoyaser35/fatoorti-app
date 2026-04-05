@@ -7,6 +7,7 @@ import { Plus, Trash2, Edit2, X, Check, Truck, Camera, Loader2 } from 'lucide-re
 import imageCompression from 'browser-image-compression';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
+import OptimizedImage from '../../components/OptimizedImage';
 
 const DeliveryCompanies: React.FC = () => {
   const [companies, setCompanies] = useState<DeliveryCompany[]>([]);
@@ -41,7 +42,7 @@ const DeliveryCompanies: React.FC = () => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       const compressed = await imageCompression(file, {
-        maxSizeMB: 1,
+        maxSizeMB: 0.5,
         maxWidthOrHeight: 1024,
         useWebWorker: true,
       });
@@ -126,7 +127,7 @@ const DeliveryCompanies: React.FC = () => {
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-2xl overflow-hidden bg-primary/10 flex items-center justify-center shrink-0 shadow-inner">
                   {company.image_url ? (
-                    <img src={company.image_url} alt={company.name} className="w-full h-full object-cover" />
+                    <OptimizedImage src={company.image_url} alt={company.name} className="w-full h-full object-cover" cloudinaryWidth={128} />
                   ) : (
                     <Truck size={28} className="text-primary" />
                   )}

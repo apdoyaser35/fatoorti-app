@@ -15,9 +15,25 @@ export default defineConfig(({mode}) => {
         '@': path.resolve(__dirname, '.'),
       },
     },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            // Split Firebase into its own chunk (~350KB) — loads in parallel
+            firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore'],
+            // Split animation library (~100KB)
+            motion: ['motion/react'],
+            // Split react core separately for better caching
+            vendor: ['react', 'react-dom', 'react-router-dom'],
+            // Split date utilities (~30KB) — used on many pages
+            datefns: ['date-fns'],
+            // Split image compression (~50KB) — only needed for upload forms
+            imgcompress: ['browser-image-compression'],
+          },
+        },
+      },
+    },
     server: {
-      // HMR is disabled in AI Studio via DISABLE_HMR env var.
-      // Do not modifyâfile watching is disabled to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR !== 'true',
     },
   };
