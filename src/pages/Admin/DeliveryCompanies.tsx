@@ -107,7 +107,7 @@ const DeliveryCompanies: React.FC = () => {
   return (
     <div className="space-y-6 pb-24">
       <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold text-gray-900 tracking-tight">شركات التوصيل</h2>
+        <h2 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">شركات التوصيل</h2>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -122,7 +122,7 @@ const DeliveryCompanies: React.FC = () => {
             <motion.div
               key={company.id}
               layout
-              className="bg-white p-4 rounded-[28px] border border-gray-100 shadow-sm flex items-center justify-between gap-4 active:scale-[0.98] transition-transform"
+              className="bg-white p-3 md:p-4 rounded-[24px] md:rounded-[28px] border border-gray-100 shadow-sm flex items-center justify-between gap-3 md:gap-4 active:scale-[0.98] transition-transform"
             >
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-2xl overflow-hidden bg-primary/10 flex items-center justify-center shrink-0 shadow-inner">
@@ -181,11 +181,11 @@ const DeliveryCompanies: React.FC = () => {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="bg-white w-full max-w-md rounded-t-[40px] p-8 space-y-8 max-h-[90vh] overflow-y-auto"
+              className="bg-white w-full max-w-md rounded-t-[40px] p-6 md:p-8 space-y-6 md:space-y-8 max-h-[90vh] overflow-y-auto"
               onClick={e => e.stopPropagation()}
             >
               <div className="flex justify-between items-center">
-                <h3 className="text-2xl font-bold">{editingCompany ? 'تعديل شركة' : 'شركة جديدة'}</h3>
+                <h3 className="text-xl md:text-2xl font-bold">{editingCompany ? 'تعديل شركة' : 'شركة جديدة'}</h3>
                 <button onClick={resetForm} className="p-2 bg-gray-100 rounded-full active:scale-95">
                   <X size={20} />
                 </button>
@@ -223,7 +223,7 @@ const DeliveryCompanies: React.FC = () => {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="مثال: هنقرستيشن"
-                      className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-lg focus:ring-2 focus:ring-primary outline-none"
+                      className="w-full bg-gray-50 border-none rounded-2xl px-4 py-3 md:px-6 md:py-4 text-base md:text-lg focus:ring-2 focus:ring-primary outline-none"
                       required
                     />
                   </div>
@@ -233,7 +233,7 @@ const DeliveryCompanies: React.FC = () => {
                   type="submit"
                   disabled={submitting}
                   className={cn(
-                    "w-full bg-primary text-white rounded-2xl py-4 text-lg font-bold shadow-lg shadow-primary/20 transition-all active:scale-95 flex items-center justify-center gap-2",
+                    "w-full bg-primary text-white rounded-2xl py-3 md:py-4 text-base md:text-lg font-bold shadow-lg shadow-primary/20 transition-all active:scale-95 flex items-center justify-center gap-2",
                     submitting && "opacity-70 cursor-not-allowed"
                   )}
                 >

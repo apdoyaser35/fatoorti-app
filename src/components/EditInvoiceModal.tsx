@@ -143,11 +143,11 @@ export const EditInvoiceModal: React.FC<EditInvoiceModalProps> = ({ invoice, bra
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-        className="bg-white w-full max-w-md rounded-t-[40px] p-8 max-h-[90vh] overflow-y-auto"
+        className="bg-white w-full max-w-md rounded-t-[40px] p-6 md:p-8 max-h-[90vh] overflow-y-auto"
         onClick={e => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-2xl font-bold">تعديل الفاتورة</h3>
+          <h3 className="text-xl md:text-2xl font-bold">تعديل الفاتورة</h3>
           <button onClick={onClose} className="p-2 bg-gray-100 rounded-full active:scale-95">
             <X size={20} />
           </button>
@@ -164,7 +164,7 @@ export const EditInvoiceModal: React.FC<EditInvoiceModalProps> = ({ invoice, bra
                   type="button"
                   onClick={() => setSelectedBranch(branch.id)}
                   className={cn(
-                    "relative p-4 rounded-[24px] border-2 transition-all text-right flex flex-col gap-3 overflow-hidden active:scale-95",
+                    "relative p-3 md:p-4 rounded-[24px] border-2 transition-all text-right flex flex-col gap-2 md:gap-3 overflow-hidden active:scale-95",
                     selectedBranch === branch.id
                       ? "border-primary bg-primary/5 ring-4 ring-primary/10"
                       : "border-gray-100 bg-white hover:border-gray-200"
@@ -201,7 +201,7 @@ export const EditInvoiceModal: React.FC<EditInvoiceModalProps> = ({ invoice, bra
                   type="button"
                   onClick={() => setSelectedDelivery(selectedDelivery === company.id ? '' : company.id)}
                   className={cn(
-                    "relative p-4 rounded-[24px] border-2 transition-all text-right flex flex-col gap-3 overflow-hidden active:scale-95",
+                    "relative p-3 md:p-4 rounded-[24px] border-2 transition-all text-right flex flex-col gap-2 md:gap-3 overflow-hidden active:scale-95",
                     selectedDelivery === company.id
                       ? "border-primary bg-primary/5 ring-4 ring-primary/10"
                       : "border-gray-100 bg-white hover:border-gray-200"
@@ -232,7 +232,7 @@ export const EditInvoiceModal: React.FC<EditInvoiceModalProps> = ({ invoice, bra
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="اكتب ملاحظة عن الأوردر (اختياري)"
-              className="w-full bg-white border-2 border-gray-100 rounded-[24px] p-4 text-sm focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none resize-none min-h-[100px]"
+              className="w-full bg-white border-2 border-gray-100 rounded-[24px] p-3 md:p-4 text-sm focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none resize-none min-h-[100px]"
             />
           </div>
 
@@ -290,7 +290,7 @@ export const EditInvoiceModal: React.FC<EditInvoiceModalProps> = ({ invoice, bra
           </div>
 
           {error && (
-            <div className="flex items-center gap-2 text-destructive text-sm font-bold bg-destructive/10 p-4 rounded-2xl">
+            <div className="flex items-center gap-2 text-destructive text-sm font-bold bg-destructive/10 p-3 md:p-4 rounded-2xl">
               <AlertCircle size={20} />
               <span>{error}</span>
             </div>
@@ -300,7 +300,7 @@ export const EditInvoiceModal: React.FC<EditInvoiceModalProps> = ({ invoice, bra
             type="submit"
             disabled={loading}
             className={cn(
-              "w-full bg-primary text-white rounded-2xl py-4 text-lg font-bold shadow-lg shadow-primary/20 transition-all active:scale-95 flex items-center justify-center gap-2",
+              "w-full bg-primary text-white rounded-2xl py-3 md:py-4 text-base md:text-lg font-bold shadow-lg shadow-primary/20 transition-all active:scale-95 flex items-center justify-center gap-2",
               loading && "opacity-70 cursor-not-allowed"
             )}
           >

@@ -49,7 +49,7 @@ const Users: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h2 className="text-3xl font-bold text-gray-900">إدارة الموظفين</h2>
+        <h2 className="text-2xl md:text-3xl font-bold text-gray-900">إدارة الموظفين</h2>
         <p className="text-sm text-gray-500">ملاحظة: يجب على الموظف إنشاء حساب أولاً ثم يمكنك تعيين الفرع له.</p>
       </div>
 
@@ -64,8 +64,7 @@ const Users: React.FC = () => {
           users.map((user) => (
             <motion.div
               key={user.uid}
-              layout
-              className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex justify-between items-center"
+              className="bg-white p-4 md:p-5 rounded-2xl md:rounded-3xl border border-gray-100 shadow-sm flex justify-between items-center"
             >
               <div className="flex items-center gap-4">
                 <div className={cn(
@@ -129,11 +128,11 @@ const Users: React.FC = () => {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="bg-white w-full max-w-md rounded-t-[40px] p-8 space-y-8"
+              className="bg-white w-full max-w-md rounded-t-[40px] p-6 md:p-8 space-y-6 md:space-y-8"
               onClick={e => e.stopPropagation()}
             >
               <div className="flex justify-between items-center">
-                <h3 className="text-2xl font-bold">تعديل صلاحيات: {editingUser.username}</h3>
+                <h3 className="text-xl md:text-2xl font-bold">تعديل صلاحيات: {editingUser.username}</h3>
                 <button
                   onClick={() => setEditingUser(null)}
                   className="p-2 bg-gray-100 rounded-full"
@@ -151,7 +150,7 @@ const Users: React.FC = () => {
                         type="button"
                         onClick={() => setSelectedRole('employee')}
                         className={cn(
-                          "p-4 rounded-2xl border-2 transition-all font-bold",
+                          "p-3 md:p-4 rounded-2xl border-2 transition-all font-bold text-sm md:text-base",
                           selectedRole === 'employee' ? "border-primary bg-primary/5 text-primary" : "border-gray-100 text-gray-400"
                         )}
                       >
@@ -161,7 +160,7 @@ const Users: React.FC = () => {
                         type="button"
                         onClick={() => setSelectedRole('admin')}
                         className={cn(
-                          "p-4 rounded-2xl border-2 transition-all font-bold",
+                          "p-3 md:p-4 rounded-2xl border-2 transition-all font-bold text-sm md:text-base",
                           selectedRole === 'admin' ? "border-primary bg-primary/5 text-primary" : "border-gray-100 text-gray-400"
                         )}
                       >
@@ -175,7 +174,7 @@ const Users: React.FC = () => {
                     <select
                       value={selectedBranch}
                       onChange={(e) => setSelectedBranch(e.target.value)}
-                      className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-lg focus:ring-2 focus:ring-primary outline-none appearance-none"
+                      className="w-full bg-gray-50 border-none rounded-2xl px-4 py-3 md:px-6 md:py-4 text-base md:text-lg focus:ring-2 focus:ring-primary outline-none appearance-none"
                     >
                       <option value="">غير معين</option>
                       {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
@@ -185,7 +184,7 @@ const Users: React.FC = () => {
 
                 <button
                   type="submit"
-                  className="w-full bg-primary text-white rounded-2xl py-4 text-lg font-bold shadow-lg shadow-primary/20 transition-all active:scale-95 flex items-center justify-center gap-2"
+                  className="w-full bg-primary text-white rounded-2xl py-3 md:py-4 text-base md:text-lg font-bold shadow-lg shadow-primary/20 transition-all active:scale-95 flex items-center justify-center gap-2"
                 >
                   <Check size={20} />
                   <span>حفظ التعديلات</span>

@@ -59,10 +59,10 @@ const Invoices: React.FC = () => {
   }, [profile]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <div className="space-y-2">
-        <h2 className="text-3xl font-bold text-gray-900">فواتيري</h2>
-        <p className="text-gray-500">آخر الفواتير التي قمت برفعها</p>
+        <h2 className="text-2xl md:text-3xl font-bold text-gray-900">فواتيري</h2>
+        <p className="text-sm md:text-base text-gray-500">آخر الفواتير التي قمت برفعها</p>
       </div>
 
       <div className="space-y-4">
@@ -83,7 +83,7 @@ const Invoices: React.FC = () => {
               key={invoice.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm space-y-4"
+              className="bg-white p-4 md:p-5 rounded-3xl border border-gray-100 shadow-sm space-y-4"
             >
               <div className="flex justify-between items-start">
                 <div className="space-y-1">
@@ -117,7 +117,7 @@ const Invoices: React.FC = () => {
 
               <button
                 onClick={() => setSelectedInvoice(invoice)}
-                className="w-full py-3 bg-gray-50 rounded-2xl text-primary text-xs font-bold flex items-center justify-center gap-2"
+                className="w-full py-2.5 md:py-3 bg-gray-50 rounded-2xl text-primary text-[11px] md:text-xs font-bold flex items-center justify-center gap-2"
               >
                 <Eye size={14} />
                 <span>عرض التفاصيل</span>
@@ -144,9 +144,9 @@ const Invoices: React.FC = () => {
               className="bg-white w-full max-w-md rounded-[40px] overflow-hidden shadow-2xl"
               onClick={e => e.stopPropagation()}
             >
-              <div className="p-6 space-y-6">
+              <div className="p-4 md:p-6 space-y-4 md:space-y-6">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-xl font-bold">تفاصيل الفاتورة</h3>
+                  <h3 className="text-lg md:text-xl font-bold">تفاصيل الفاتورة</h3>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => {
@@ -164,25 +164,25 @@ const Invoices: React.FC = () => {
 
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-gray-50 p-4 rounded-2xl">
+                    <div className="bg-gray-50 p-3 md:p-4 rounded-2xl">
                       <p className="text-[10px] font-bold text-gray-400 mb-1">رقم الفاتورة</p>
-                      <p className="font-bold text-gray-900">{selectedInvoice.invoice_number}</p>
+                      <p className="font-bold text-sm md:text-base text-gray-900">{selectedInvoice.invoice_number}</p>
                     </div>
-                    <div className="bg-gray-50 p-4 rounded-2xl">
+                    <div className="bg-gray-50 p-3 md:p-4 rounded-2xl">
                       <p className="text-[10px] font-bold text-gray-400 mb-1">الفرع</p>
-                      <p className="font-bold text-gray-900">{branches[selectedInvoice.branch_id]?.name}</p>
+                      <p className="font-bold text-sm md:text-base text-gray-900">{branches[selectedInvoice.branch_id]?.name}</p>
                     </div>
-                    <div className="bg-gray-50 p-4 rounded-2xl">
+                    <div className="bg-gray-50 p-3 md:p-4 rounded-2xl">
                       <p className="text-[10px] font-bold text-gray-400 mb-1">شركة التوصيل</p>
-                      <p className="font-bold text-gray-900">{selectedInvoice.delivery_company_id ? (deliveryCompanies[selectedInvoice.delivery_company_id]?.name || 'غير معروف') : 'بدون توصيل'}</p>
+                      <p className="font-bold text-sm md:text-base text-gray-900">{selectedInvoice.delivery_company_id ? (deliveryCompanies[selectedInvoice.delivery_company_id]?.name || 'غير معروف') : 'بدون توصيل'}</p>
                     </div>
-                    <div className="bg-gray-50 p-4 rounded-2xl">
+                    <div className="bg-gray-50 p-3 md:p-4 rounded-2xl">
                       <p className="text-[10px] font-bold text-gray-400 mb-1">التاريخ</p>
-                      <p className="font-bold text-gray-900">{format(new Date(selectedInvoice.date), 'yyyy-MM-dd')}</p>
+                      <p className="font-bold text-sm md:text-base text-gray-900">{format(new Date(selectedInvoice.date), 'yyyy-MM-dd')}</p>
                     </div>
-                    <div className="bg-gray-50 p-4 rounded-2xl">
+                    <div className="bg-gray-50 p-3 md:p-4 rounded-2xl">
                       <p className="text-[10px] font-bold text-gray-400 mb-1">رقم الهاتف</p>
-                      <p className="font-bold text-gray-900">{selectedInvoice.phone_number || 'غير متوفر'}</p>
+                      <p className="font-bold text-sm md:text-base text-gray-900">{selectedInvoice.phone_number || 'غير متوفر'}</p>
                     </div>
                   </div>
 

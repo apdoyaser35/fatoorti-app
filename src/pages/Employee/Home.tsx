@@ -207,10 +207,10 @@ const Home: React.FC = () => {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 md:space-y-8">
       <div className="space-y-2">
-        <h2 className="text-3xl font-bold text-gray-900">رفع فاتورة جديدة</h2>
-        <p className="text-gray-500">قم بتصوير الفاتورة أو الطلب ورفعه للنظام</p>
+        <h2 className="text-2xl md:text-3xl font-bold text-gray-900">رفع فاتورة جديدة</h2>
+        <p className="text-sm md:text-base text-gray-500">قم بتصوير الفاتورة أو الطلب ورفعه للنظام</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -222,7 +222,7 @@ const Home: React.FC = () => {
             value={phoneNumber}
             onChange={(e) => setPhoneNumber(e.target.value)}
             placeholder="مثال: 0500000000"
-            className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-primary outline-none"
+            className="w-full bg-gray-50 border-none rounded-2xl px-4 py-3 md:px-6 md:py-4 text-sm focus:ring-2 focus:ring-primary outline-none"
             required
           />
         </div>
@@ -237,7 +237,7 @@ const Home: React.FC = () => {
                 type="button"
                 onClick={() => setSelectedBranch(branch.id)}
                 className={cn(
-                  "relative p-4 rounded-[24px] border-2 transition-all text-right flex flex-col gap-3 overflow-hidden active:scale-95",
+                  "relative p-3 md:p-4 rounded-[24px] border-2 transition-all text-right flex flex-col gap-2 md:gap-3 overflow-hidden active:scale-95",
                   selectedBranch === branch.id
                     ? "border-primary bg-primary/5 ring-4 ring-primary/10"
                     : "border-gray-100 bg-white hover:border-gray-200"
@@ -274,7 +274,7 @@ const Home: React.FC = () => {
                 type="button"
                 onClick={() => setSelectedDelivery(selectedDelivery === company.id ? '' : company.id)}
                 className={cn(
-                  "relative p-4 rounded-[24px] border-2 transition-all text-right flex flex-col gap-3 overflow-hidden active:scale-95",
+                  "relative p-3 md:p-4 rounded-[24px] border-2 transition-all text-right flex flex-col gap-2 md:gap-3 overflow-hidden active:scale-95",
                   selectedDelivery === company.id
                     ? "border-primary bg-primary/5 ring-4 ring-primary/10"
                     : "border-gray-100 bg-white hover:border-gray-200"
@@ -305,7 +305,7 @@ const Home: React.FC = () => {
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="اكتب ملاحظة عن الأوردر (اختياري)"
-            className="w-full bg-white border-2 border-gray-100 rounded-[24px] p-4 text-sm focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none resize-none min-h-[100px]"
+            className="w-full bg-white border-2 border-gray-100 rounded-[24px] p-3 md:p-4 text-sm focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none resize-none min-h-[100px]"
           />
         </div>
 
@@ -363,7 +363,7 @@ const Home: React.FC = () => {
         </div>
 
         {error && (
-          <div className="flex items-center gap-2 text-destructive text-sm font-bold bg-destructive/10 p-4 rounded-2xl">
+          <div className="flex items-center gap-2 text-destructive text-sm font-bold bg-destructive/10 p-3 md:p-4 rounded-2xl">
             <AlertCircle size={20} />
             <span>{error}</span>
           </div>
@@ -373,7 +373,7 @@ const Home: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-2 text-green-600 text-sm font-bold bg-green-50 p-4 rounded-2xl"
+            className="flex items-center gap-2 text-green-600 text-sm font-bold bg-green-50 p-3 md:p-4 rounded-2xl"
           >
             <CheckCircle2 size={20} />
             <span>تم رفع الفاتورة بنجاح!</span>
@@ -384,7 +384,7 @@ const Home: React.FC = () => {
           type="submit"
           disabled={loading}
           className={cn(
-            "w-full bg-primary text-white rounded-2xl py-5 text-xl font-bold shadow-xl shadow-primary/20 transition-all active:scale-95 flex items-center justify-center gap-3",
+            "w-full bg-primary text-white rounded-2xl py-3.5 md:py-5 text-lg md:text-xl font-bold shadow-lg md:shadow-xl shadow-primary/20 transition-all active:scale-95 flex items-center justify-center gap-2 md:gap-3",
             loading && "opacity-70 cursor-not-allowed"
           )}
         >

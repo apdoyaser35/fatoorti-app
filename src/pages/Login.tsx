@@ -57,15 +57,15 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6 py-12">
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center px-4 py-8 md:px-6 md:py-12">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         className="w-full max-w-md space-y-8"
       >
         <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold text-primary tracking-tight">فاتورتي</h1>
-          <p className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">نظام إدارة الفواتير والطلبات</p>
+          <h1 className="text-3xl md:text-4xl font-bold text-primary tracking-tight">فاتورتي</h1>
+          <p className="text-xs md:text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">نظام إدارة الفواتير والطلبات</p>
           <p className="text-gray-500 font-medium pt-2">تسجيل الدخول للمتابعة</p>
         </div>
 
@@ -78,7 +78,7 @@ const Login: React.FC = () => {
                 placeholder="اسم المستخدم (رقم أو اسم إنجليزي)"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full bg-gray-50 border-none rounded-2xl px-12 py-4 text-lg focus:ring-2 focus:ring-primary transition-all outline-none"
+                className="w-full bg-gray-50 border-none rounded-2xl px-12 py-3 md:py-4 text-base md:text-lg focus:ring-2 focus:ring-primary transition-all outline-none"
                 required
               />
             </div>
@@ -89,7 +89,7 @@ const Login: React.FC = () => {
                 placeholder="كلمة المرور"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-gray-50 border-none rounded-2xl px-12 py-4 text-lg focus:ring-2 focus:ring-primary transition-all outline-none"
+                className="w-full bg-gray-50 border-none rounded-2xl px-12 py-3 md:py-4 text-base md:text-lg focus:ring-2 focus:ring-primary transition-all outline-none"
                 required
               />
             </div>
@@ -123,7 +123,7 @@ const Login: React.FC = () => {
             type="submit"
             disabled={loading}
             className={cn(
-              "w-full bg-primary text-white rounded-2xl py-4 text-lg font-bold shadow-lg shadow-primary/20 transition-all active:scale-95 flex items-center justify-center gap-2",
+              "w-full bg-primary text-white rounded-2xl py-3 md:py-4 text-base md:text-lg font-bold shadow-lg shadow-primary/20 transition-all active:scale-95 flex items-center justify-center gap-2",
               loading && "opacity-70 cursor-not-allowed"
             )}
           >

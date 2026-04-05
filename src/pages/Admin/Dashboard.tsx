@@ -372,9 +372,9 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold text-gray-900">لوحة التحكم</h2>
+        <h2 className="text-2xl md:text-3xl font-bold text-gray-900">لوحة التحكم</h2>
         <div className="flex gap-2">
           <button
             onClick={() => setShowFilters(!showFilters)}
@@ -390,13 +390,13 @@ const Dashboard: React.FC = () => {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm">
+        <div className="bg-white p-4 md:p-5 rounded-3xl border border-gray-100 shadow-sm">
           <p className="text-gray-500 text-xs font-bold mb-1">إجمالي الفواتير</p>
-          <p className="text-3xl font-bold text-primary">{invoices.length}</p>
+          <p className="text-2xl md:text-3xl font-bold text-primary">{invoices.length}</p>
         </div>
-        <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm">
+        <div className="bg-white p-4 md:p-5 rounded-3xl border border-gray-100 shadow-sm">
           <p className="text-gray-500 text-xs font-bold mb-1">تاريخ اليوم</p>
-          <p className="text-lg font-bold text-gray-900">{format(new Date(), 'dd MMMM', { locale: ar })}</p>
+          <p className="text-base md:text-lg font-bold text-gray-900">{format(new Date(), 'dd MMMM', { locale: ar })}</p>
         </div>
       </div>
 
@@ -409,7 +409,7 @@ const Dashboard: React.FC = () => {
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden"
           >
-            <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4 mb-4">
+            <div className="bg-white p-4 md:p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4 mb-4">
               <div className="space-y-2">
                 <label className="text-xs font-bold text-gray-500 mr-1">التاريخ</label>
                 <div className="grid grid-cols-2 gap-3 mb-2">
@@ -498,7 +498,7 @@ const Dashboard: React.FC = () => {
                     key={invoice.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex flex-col h-full"
+                    className="bg-white p-4 md:p-5 rounded-3xl border border-gray-100 shadow-sm flex flex-col h-full"
                   >
                     <div className="space-y-4 flex-1">
                       <div className="flex justify-between items-start">
@@ -556,14 +556,14 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Backup and Maintenance Section */}
-      <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-5">
+      <div className="bg-white p-4 md:p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4 md:space-y-5">
         <div className="flex items-center gap-3 border-b border-gray-50 pb-4">
           <div className="w-10 h-10 bg-indigo-50 rounded-2xl flex items-center justify-center">
             <ShieldAlert size={20} className="text-indigo-600" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-gray-900">النسخ الاحتياطي والصيانة</h3>
-            <p className="text-xs text-gray-500 font-medium mt-1">تصدير الفواتير الأسبوعية كـ PDF وحذف البيانات القديمة</p>
+            <h3 className="text-base md:text-lg font-bold text-gray-900">النسخ الاحتياطي والصيانة</h3>
+            <p className="text-[10px] md:text-xs text-gray-500 font-medium mt-1">تصدير الفواتير الأسبوعية كـ PDF وحذف البيانات القديمة</p>
           </div>
         </div>
 
@@ -592,23 +592,23 @@ const Dashboard: React.FC = () => {
           <button
             onClick={archiveImages}
             disabled={loading}
-            className="w-full bg-amber-600 active:bg-amber-700 hover:bg-amber-700 text-white font-bold py-4 rounded-2xl transition-colors shadow-sm disabled:opacity-70 flex items-center justify-center gap-2"
+            className="w-full bg-amber-600 active:bg-amber-700 hover:bg-amber-700 text-white font-bold py-3 md:py-4 rounded-2xl transition-colors shadow-sm disabled:opacity-70 flex items-center justify-center gap-2"
           >
-            <Archive size={20} />
-            <span>تحميل بيانات وصور العرض الحالي (ZIP)</span>
+            <Archive size={20} className="w-4 h-4 md:w-5 md:h-5" />
+            <span className="text-sm md:text-base">تحميل بيانات وصور العرض الحالي (ZIP)</span>
           </button>
 
           <button
             onClick={handleExportBackup}
             disabled={backupLoading}
-            className="w-full bg-indigo-600 active:bg-indigo-700 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl transition-colors shadow-sm disabled:opacity-70 flex items-center justify-center gap-2"
+            className="w-full bg-indigo-600 active:bg-indigo-700 hover:bg-indigo-700 text-white font-bold py-3 md:py-4 rounded-2xl transition-colors shadow-sm disabled:opacity-70 flex items-center justify-center gap-2"
           >
             {backupLoading ? (
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             ) : (
               <>
-                <Download size={20} />
-                <span>تصدير نسخة PDF الأسبوعية</span>
+                <Download size={20} className="w-4 h-4 md:w-5 md:h-5" />
+                <span className="text-sm md:text-base">تصدير نسخة PDF الأسبوعية</span>
               </>
             )}
           </button>
@@ -617,14 +617,14 @@ const Dashboard: React.FC = () => {
             onClick={() => setShowDeleteModal(true)}
             disabled={!backupSuccess || backupLoading}
             className={cn(
-              "w-full font-bold py-4 rounded-2xl transition-all shadow-sm flex items-center justify-center gap-2 border",
+              "w-full font-bold py-3 md:py-4 rounded-2xl transition-all shadow-sm flex items-center justify-center gap-2 border",
               backupSuccess && !backupLoading
                 ? "bg-red-50 text-red-600 border-red-100 hover:bg-red-100 active:bg-red-200"
                 : "bg-gray-50 text-gray-400 border-gray-100 cursor-not-allowed"
             )}
           >
-            <Trash2 size={20} />
-            <span>حذف بيانات الأسبوع</span>
+            <Trash2 size={20} className="w-4 h-4 md:w-5 md:h-5" />
+            <span className="text-sm md:text-base">حذف بيانات الأسبوع</span>
           </button>
           {!backupSuccess && (
              <p className="text-[10px] text-center text-amber-600 font-bold mt-1">يجب تصدير النسخة الاحتياطية بنجاح أولاً لتتمكن من الحذف</p>
@@ -649,9 +649,9 @@ const Dashboard: React.FC = () => {
               className="bg-white w-full max-w-md rounded-[40px] overflow-hidden shadow-2xl"
               onClick={e => e.stopPropagation()}
             >
-              <div className="p-6 space-y-6">
+              <div className="p-4 md:p-6 space-y-4 md:space-y-6">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-xl font-bold">تفاصيل الفاتورة</h3>
+                  <h3 className="text-lg md:text-xl font-bold">تفاصيل الفاتورة</h3>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => {
@@ -671,31 +671,31 @@ const Dashboard: React.FC = () => {
                 </div>
 
                 <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-gray-50 p-4 rounded-2xl">
+                  <div className="grid grid-cols-2 gap-3 md:gap-4">
+                    <div className="bg-gray-50 p-3 md:p-4 rounded-2xl">
                       <p className="text-[10px] font-bold text-gray-400 mb-1">رقم الفاتورة</p>
-                      <p className="font-bold text-gray-900">{selectedInvoice.invoice_number}</p>
+                      <p className="font-bold text-sm md:text-base text-gray-900">{selectedInvoice.invoice_number}</p>
                     </div>
-                    <div className="bg-gray-50 p-4 rounded-2xl">
+                    <div className="bg-gray-50 p-3 md:p-4 rounded-2xl">
                       <p className="text-[10px] font-bold text-gray-400 mb-1">الفرع</p>
-                      <p className="font-bold text-gray-900">{branches[selectedInvoice.branch_id]?.name}</p>
+                      <p className="font-bold text-sm md:text-base text-gray-900">{branches[selectedInvoice.branch_id]?.name}</p>
                     </div>
-                    <div className="bg-gray-50 p-4 rounded-2xl">
+                    <div className="bg-gray-50 p-3 md:p-4 rounded-2xl">
                       <p className="text-[10px] font-bold text-gray-400 mb-1">التاريخ</p>
-                      <p className="font-bold text-gray-900">{format(new Date(selectedInvoice.date), 'yyyy-MM-dd')}</p>
+                      <p className="font-bold text-sm md:text-base text-gray-900">{format(new Date(selectedInvoice.date), 'yyyy-MM-dd')}</p>
                     </div>
-                    <div className="bg-gray-50 p-4 rounded-2xl">
+                    <div className="bg-gray-50 p-3 md:p-4 rounded-2xl">
                       <p className="text-[10px] font-bold text-gray-400 mb-1">الوقت</p>
-                      <p className="font-bold text-gray-900">{format(new Date(selectedInvoice.createdAt || selectedInvoice.date), 'hh:mm a', { locale: ar })}</p>
+                      <p className="font-bold text-sm md:text-base text-gray-900">{format(new Date(selectedInvoice.createdAt || selectedInvoice.date), 'hh:mm a', { locale: ar })}</p>
                     </div>
-                    <div className="bg-gray-50 p-4 rounded-2xl flex flex-col justify-center">
+                    <div className="bg-gray-50 p-3 md:p-4 rounded-2xl flex flex-col justify-center">
                       <p className="text-[10px] font-bold text-gray-400 mb-1">الموظف</p>
-                      <p className="font-bold text-gray-900">{employees[selectedInvoice.employee_id]?.username}</p>
+                      <p className="font-bold text-sm md:text-base text-gray-900">{employees[selectedInvoice.employee_id]?.username}</p>
                       <p className="text-[10px] font-bold text-gray-500 mt-1" dir="ltr">{selectedInvoice.phone_number || 'غير متوفر'}</p>
                     </div>
-                    <div className="bg-gray-50 p-4 rounded-2xl">
+                    <div className="bg-gray-50 p-3 md:p-4 rounded-2xl">
                       <p className="text-[10px] font-bold text-gray-400 mb-1">شركة التوصيل</p>
-                      <p className="font-bold text-gray-900">{selectedInvoice.delivery_company_id ? deliveryCompanies[selectedInvoice.delivery_company_id]?.name : 'بدون'}</p>
+                      <p className="font-bold text-sm md:text-base text-gray-900">{selectedInvoice.delivery_company_id ? deliveryCompanies[selectedInvoice.delivery_company_id]?.name : 'بدون'}</p>
                     </div>
                   </div>
 
