@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc, getDocs, collection } from 'firebase/firestore';
+import { doc, setDoc, getDocs, collection, query, where } from 'firebase/firestore';
 import { auth, db, handleFirestoreError, OperationType } from '../firebase';
 import { motion } from 'motion/react';
 import { UserPlus, User, Lock, AlertCircle } from 'lucide-react';
@@ -20,8 +20,11 @@ const Signup: React.FC = () => {
     e.preventDefault();
     setError('');
     
+    const trimmedUsername = username.trim();
+    const searchUsername = trimmedUsername.toLowerCase();
+
     // Validation
-    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+    if (!/^[a-zA-Z0-9_]+$/.test(trimmedUsername)) {
       setError('اسم المستخدم يجب أن يحتوي على أحرف إنجليزية أو أرقام فقط');
       return;
     }
@@ -39,24 +42,51 @@ const Signup: React.FC = () => {
     setLoading(true);
 
     try {
-      const email = `${username.toLowerCase()}@invoice.app`;
+      // 1. Prevent duplicate usernames:
+      // We check both exact display matches and lowercase matches for extreme safety
+      const usersRef = collection(db, 'users');
+      const qExact = query(usersRef, where('username', '==', trimmedUsername));
+      const qLowerExact = query(usersRef, where('username', '==', searchUsername));
+      const qLower = query(usersRef, where('username_lowercase', '==', searchUsername));
+      
+      const [snapExact, snapLowerExact, snapLower] = await Promise.all([
+        getDocs(qExact),
+        getDocs(qLowerExact),
+        getDocs(qLower)
+      ]);
+
+      if (!snapExact.empty || !snapLowerExact.empty || !snapLower.empty) {
+        console.log("Username already exists");
+        setError('اسم المستخدم مستخدم بالفعل');
+        setLoading(false);
+        return;
+      }
+
+      // 2. Safe account creation flow
+      const email = `${searchUsername}@invoice.app`;
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
+      console.log("Auth created");
 
-      const profile: UserProfile = {
+      // 4. Clean data before saving: keeping original display in username
+      const profileInfo = {
         uid: user.uid,
-        username: username,
+        username: trimmedUsername,
+        username_lowercase: searchUsername, // For future lower case searches
         role: 'employee',
+        active: true, // To align with Firestore allow create list rules
         createdAt: new Date().toISOString(),
       };
 
       try {
-        await setDoc(doc(db, 'users', user.uid), profile);
+        await setDoc(doc(db, 'users', user.uid), profileInfo);
+        console.log("Firestore saved");
       } catch (err) {
         console.error('Firestore write failed:', err);
-        setError('نجح إنشاء الحساب لكن تعذر حفظ بياناتك (Firestore). يرجى التأكد من قواعد البيانات أو التواصل مع الإدارة.');
-        // Optional: you could delete the auth user here to avoid ghost accounts
-        // await user.delete().catch(console.error);
+        // 3. Handle Firestore failure properly
+        console.log("Cleanup executed");
+        await user.delete().catch(deleteErr => console.error("Failed to delete auth user:", deleteErr));
+        setError('نجح إنشاء الحساب لكن تعذر حفظ بياناتك (Firestore). تم إزالة الحساب تفادياً للأخطاء. يرجى المحاولة مرة أخرى.');
         setLoading(false);
         return;
       }
@@ -64,7 +94,8 @@ const Signup: React.FC = () => {
       navigate('/');
     } catch (err: any) {
       if (err.code === 'auth/email-already-in-use') {
-        setError('اسم المستخدم هذا مستخدم بالفعل');
+        console.log("Username already exists");
+        setError('اسم المستخدم مستخدم بالفعل');
       } else {
         setError(err.message || 'حدث خطأ أثناء إنشاء الحساب');
       }
