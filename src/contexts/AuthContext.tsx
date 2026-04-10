@@ -20,17 +20,18 @@ const AuthContext = createContext<AuthContextType>({
 
 export const useAuth = () => useContext(AuthContext);
 
+const CACHE_KEY = 'auth_user_cached';
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const hasCachedUser = localStorage.getItem(CACHE_KEY) === 'true';
+  const [loading, setLoading] = useState(hasCachedUser ? false : true);
   const [isAuthReady, setIsAuthReady] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
 
-    // Fallback: iOS Safari PWA sometimes clears indexedDB early or blocks it.
-    // We enforce persistence if localStorage says the user wanted to be remembered.
     const enforcePersistence = async () => {
       try {
         if (localStorage.getItem('rememberedUser') === 'true') {
@@ -40,10 +41,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('Error enforcing persistence:', err);
       }
     };
-    
+
     enforcePersistence();
 
-    // Force refresh auth state on iOS
     const forceRefresh = async () => {
       try {
         await auth.authStateReady();
@@ -58,13 +58,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (!isMounted) return;
 
-      // Set loading=true at the start of every auth state change
-      // to prevent any brief window where loading=false + profile=null
-      setLoading(true);
+      // تحديث الـ cache فورًا
+      if (currentUser) {
+        localStorage.setItem(CACHE_KEY, 'true');
+      } else {
+        localStorage.removeItem(CACHE_KEY);
+      }
+
+      // لو مفيش يوزر cached، نظهر loading
+      // لو في cached user، نخلي المحتوى يظهر وFirebase يكمل في الخلفية
+      if (!hasCachedUser) {
+        setLoading(true);
+      }
+
       setUser(currentUser);
 
-      // Fallback timeout: force loading=false after 3 seconds 
-      // so iOS PWA never gets stuck on white screen
       const timeoutId = setTimeout(() => {
         if (isMounted) {
           console.warn('Auth state loading timeout reached');
@@ -83,7 +91,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setProfile(null);
           }
         } catch (error) {
-          console.error("Error fetching user profile:", error);
+          console.error('Error fetching user profile:', error);
           if (!isMounted) return;
           setProfile(null);
         } finally {

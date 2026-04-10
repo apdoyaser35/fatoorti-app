@@ -6,7 +6,6 @@ import Layout from './components/Layout';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 
-// Import pages directly instead of lazy loading for iOS compatibility
 import EmployeeHome from './pages/Employee/Home';
 import EmployeeInvoices from './pages/Employee/Invoices';
 import AdminDashboard from './pages/Admin/Dashboard';
@@ -14,25 +13,28 @@ import AdminBranches from './pages/Admin/Branches';
 import AdminDelivery from './pages/Admin/DeliveryCompanies';
 import AdminUsers from './pages/Admin/Users';
 
-const SuspenseFallback = () => (
-  <div className="fixed inset-0 flex items-center justify-center bg-white z-[9999]" style={{ top: '0', left: '0', right: '0', bottom: '0' }}>
+const Spinner = () => (
+  <div className="fixed inset-0 flex items-center justify-center bg-white z-[9999]">
     <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
   </div>
 );
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode; role?: 'admin' | 'employee' }> = ({ children, role }) => {
-  const { user, profile, loading: authLoading } = useAuth();
+  const { user, profile, loading } = useAuth();
 
-  if (authLoading) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-white z-[9999]" style={{ top: '0', left: '0', right: '0', bottom: '0' }}>
-        <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-      </div>
-    );
+  // نظهر Spinner بس لو loading وفي نفس الوقت مفيش user معروف
+  if (loading && !user) {
+    return <Spinner />;
   }
 
   if (!user) {
     return <Navigate to="/login" />;
+  }
+
+  // لو اليوزر موجود بس الـ profile لسه بتتجيب (Firebase شغال في الخلفية)
+  // نظهر Spinner بس لو loading وفي نفس الوقت مفيش profile
+  if (loading && !profile) {
+    return <Spinner />;
   }
 
   if (!profile) {
@@ -49,15 +51,24 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; role?: 'admin' | 'em
 const RootRedirect: React.FC = () => {
   const { user, profile, loading } = useAuth();
 
-  if (loading) {
+  if (loading && !user) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-white z-[9999]" style={{ top: '0', left: '0', right: '0', bottom: '0' }}>
+      <div className="fixed inset-0 flex items-center justify-center bg-white z-[9999]">
         <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
       </div>
     );
   }
 
   if (!user) return <Navigate to="/login" />;
+
+  if (loading && !profile) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-white z-[9999]">
+        <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   if (!profile) return <Navigate to="/login" />;
 
   return <Navigate to={profile.role === 'admin' ? '/admin' : '/employee'} />;
@@ -71,7 +82,7 @@ export default function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
-            
+
             {/* Employee Routes */}
             <Route
               path="/employee"
