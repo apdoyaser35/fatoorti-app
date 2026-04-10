@@ -71,7 +71,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const forceRefresh = async () => {
       try {
         await auth.authStateReady();
-        console.log('Auth state ready');
       } catch (err) {
         console.error('Auth state ready error:', err);
       }
@@ -82,20 +81,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (!isMounted) return;
 
-      // تحديث الـ cache فورًا
       setCachedUser(!!currentUser);
 
-      // نظهر loading بس لو مفيش cached user
       if (!getCachedUser()) {
         setLoading(true);
       }
 
       setUser(currentUser);
 
-      // Fallback timeout بعد 3 ثواني عشان iOS ميستكيش
       const timeoutId = setTimeout(() => {
         if (isMounted) {
-          console.warn('Auth state loading timeout reached');
           setLoading(false);
           setIsAuthReady(true);
         }

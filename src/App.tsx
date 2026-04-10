@@ -14,7 +14,7 @@ import AdminDelivery from './pages/Admin/DeliveryCompanies';
 import AdminUsers from './pages/Admin/Users';
 
 const Spinner = () => (
-  <div className="fixed inset-0 flex items-center justify-center bg-white z-[9999] min-h-[100dvh] min-h-screen">
+  <div className="fixed inset-0 flex items-center justify-center bg-white z-[9999]">
     <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
   </div>
 );
@@ -31,7 +31,6 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; role?: 'admin' | 'em
     return <Navigate to="/login" />;
   }
 
-  // لو اليوزر موجود بس الـ profile لسه بتتجيب (Firebase شغال في الخلفية)
   // نظهر Spinner بس لو loading وفي نفس الوقت مفيش profile
   if (loading && !profile) {
     return <Spinner />;
@@ -52,21 +51,13 @@ const RootRedirect: React.FC = () => {
   const { user, profile, loading } = useAuth();
 
   if (loading && !user) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-white z-[9999]">
-        <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-      </div>
-    );
+    return <Spinner />;
   }
 
   if (!user) return <Navigate to="/login" />;
 
   if (loading && !profile) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-white z-[9999]">
-        <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-      </div>
-    );
+    return <Spinner />;
   }
 
   if (!profile) return <Navigate to="/login" />;
@@ -83,7 +74,6 @@ export default function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
 
-            {/* Employee Routes */}
             <Route
               path="/employee"
               element={
@@ -101,7 +91,6 @@ export default function App() {
               }
             />
 
-            {/* Admin Routes */}
             <Route
               path="/admin"
               element={
