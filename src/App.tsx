@@ -15,7 +15,7 @@ const AdminDelivery = React.lazy(() => import('./pages/Admin/DeliveryCompanies')
 const AdminUsers = React.lazy(() => import('./pages/Admin/Users'));
 
 const SuspenseFallback = () => (
-  <div className="min-h-screen flex items-center justify-center bg-white">
+  <div className="fixed inset-0 flex items-center justify-center bg-white z-[9999]" style={{ top: '0', left: '0', right: '0', bottom: '0' }}>
     <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
   </div>
 );
@@ -25,7 +25,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; role?: 'admin' | 'em
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="fixed inset-0 flex items-center justify-center bg-white z-[9999]" style={{ top: '0', left: '0', right: '0', bottom: '0' }}>
         <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
       </div>
     );
@@ -54,7 +54,7 @@ const RootRedirect: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="fixed inset-0 flex items-center justify-center bg-white z-[9999]" style={{ top: '0', left: '0', right: '0', bottom: '0' }}>
         <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
       </div>
     );
