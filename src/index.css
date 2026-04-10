@@ -67,6 +67,18 @@
     padding: 0;
   }
   
+  /* iOS Safari viewport height fix */
+  html, body {
+    min-height: -webkit-fill-available;
+  }
+  
+  #root {
+    display: flex;
+    width: 100%;
+    min-height: -webkit-fill-available;
+    min-height: 100dvh;
+  }
+  
   * {
     @apply border-border;
   }
@@ -76,12 +88,6 @@
     direction: rtl;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-  }
-  
-  #root {
-    display: flex;
-    width: 100%;
-    height: 100%;
   }
 }
 
@@ -98,12 +104,23 @@
   .fixed {
     position: fixed;
   }
-  
-  .inset-0 {
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
+}
+
+/* Force hardware acceleration for smooth rendering on iOS */
+.ios-accelerated {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Prevent iOS Safari from zooming on input focus */
+@media screen and (max-width: 768px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  textarea,
+  select {
+    font-size: 16px !important;
   }
 }
 

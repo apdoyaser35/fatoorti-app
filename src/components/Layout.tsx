@@ -32,7 +32,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50 w-full overflow-hidden">
+    <div className="flex flex-col h-[100dvh] bg-gray-50 w-full overflow-hidden">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-100 px-4 py-3 md:px-6 md:py-4 flex justify-between items-center flex-shrink-0">
         <h1 className="text-lg md:text-xl font-bold text-primary tracking-tight">فاتورتي</h1>

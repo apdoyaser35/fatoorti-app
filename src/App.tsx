@@ -14,7 +14,7 @@ import AdminDelivery from './pages/Admin/DeliveryCompanies';
 import AdminUsers from './pages/Admin/Users';
 
 const Spinner = () => (
-  <div className="fixed inset-0 flex items-center justify-center bg-white z-[9999]">
+  <div className="fixed inset-0 flex items-center justify-center bg-white z-[9999] min-h-[100dvh] min-h-screen">
     <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
   </div>
 );
