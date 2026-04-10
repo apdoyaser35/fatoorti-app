@@ -22,11 +22,35 @@ export const useAuth = () => useContext(AuthContext);
 
 const CACHE_KEY = 'auth_user_cached';
 
+const getCachedUser = (): boolean => {
+  try {
+    return (
+      localStorage.getItem(CACHE_KEY) === 'true' ||
+      sessionStorage.getItem(CACHE_KEY) === 'true'
+    );
+  } catch {
+    return false;
+  }
+};
+
+const setCachedUser = (value: boolean): void => {
+  try {
+    if (value) {
+      localStorage.setItem(CACHE_KEY, 'true');
+      sessionStorage.setItem(CACHE_KEY, 'true');
+    } else {
+      localStorage.removeItem(CACHE_KEY);
+      sessionStorage.removeItem(CACHE_KEY);
+    }
+  } catch {
+    // silent fail على iOS Private Browsing
+  }
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const hasCachedUser = localStorage.getItem(CACHE_KEY) === 'true';
-  const [loading, setLoading] = useState(hasCachedUser ? false : true);
+  const [loading, setLoading] = useState(getCachedUser() ? false : true);
   const [isAuthReady, setIsAuthReady] = useState(false);
 
   useEffect(() => {
@@ -59,20 +83,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!isMounted) return;
 
       // تحديث الـ cache فورًا
-      if (currentUser) {
-        localStorage.setItem(CACHE_KEY, 'true');
-      } else {
-        localStorage.removeItem(CACHE_KEY);
-      }
+      setCachedUser(!!currentUser);
 
-      // لو مفيش يوزر cached، نظهر loading
-      // لو في cached user، نخلي المحتوى يظهر وFirebase يكمل في الخلفية
-      if (!hasCachedUser) {
+      // نظهر loading بس لو مفيش cached user
+      if (!getCachedUser()) {
         setLoading(true);
       }
 
       setUser(currentUser);
 
+      // Fallback timeout بعد 3 ثواني عشان iOS ميستكيش
       const timeoutId = setTimeout(() => {
         if (isMounted) {
           console.warn('Auth state loading timeout reached');
