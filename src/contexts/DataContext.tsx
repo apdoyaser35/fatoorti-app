@@ -115,6 +115,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const prefetchData = useCallback(async () => {
     if (isPrefetched) return;
     
+    // Timeout fallback for iOS - force completion after 5 seconds
+    const timeoutId = setTimeout(() => {
+      console.warn('DataContext prefetch timeout reached');
+      setIsPrefetched(true);
+    }, 5000);
+    
     // We start all non-blocking fetches independently
     // If they are already fetching, they will return immediately due to ref check
     Promise.all([
@@ -122,6 +128,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       refreshDelivery(),
       refreshUsers()
     ]).then(() => {
+      clearTimeout(timeoutId);
+      setIsPrefetched(true);
+    }).catch((err) => {
+      console.error('DataContext prefetch error:', err);
+      clearTimeout(timeoutId);
       setIsPrefetched(true);
     });
   }, [isPrefetched, refreshBranches, refreshDelivery, refreshUsers]);
