@@ -21,6 +21,9 @@ interface DataContextType {
 
   prefetchData: () => Promise<void>;
   isPrefetched: boolean;
+  
+  // Add overall loading state
+  isLoading: boolean;
 }
 
 const DataContext = createContext<DataContextType>({
@@ -41,6 +44,8 @@ const DataContext = createContext<DataContextType>({
 
   prefetchData: async () => {},
   isPrefetched: false,
+  
+  isLoading: true,
 });
 
 export const useData = () => useContext(DataContext);
@@ -56,6 +61,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loadingUsers, setLoadingUsers] = useState(true);
 
   const [isPrefetched, setIsPrefetched] = useState(false);
+  
+  // Overall loading state
+  const [isLoading, setIsLoading] = useState(true);
   
   // Track fetching state to prevent duplicate parallel requests
   const fetchingRefs = useRef({
@@ -115,10 +123,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const prefetchData = useCallback(async () => {
     if (isPrefetched) return;
     
+    setIsLoading(true);
+    
     // Timeout fallback for iOS - force completion after 5 seconds
     const timeoutId = setTimeout(() => {
       console.warn('DataContext prefetch timeout reached');
       setIsPrefetched(true);
+      setIsLoading(false);
     }, 5000);
     
     // We start all non-blocking fetches independently
@@ -130,10 +141,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     ]).then(() => {
       clearTimeout(timeoutId);
       setIsPrefetched(true);
+      setIsLoading(false);
     }).catch((err) => {
       console.error('DataContext prefetch error:', err);
       clearTimeout(timeoutId);
       setIsPrefetched(true);
+      setIsLoading(false);
     });
   }, [isPrefetched, refreshBranches, refreshDelivery, refreshUsers]);
 
@@ -174,7 +187,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         refreshUsers,
 
         prefetchData,
-        isPrefetched
+        isPrefetched,
+        
+        isLoading
       }}
     >
       {children}

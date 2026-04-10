@@ -43,6 +43,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     enforcePersistence();
 
+    // Force refresh auth state on iOS
+    const forceRefresh = async () => {
+      try {
+        await auth.authStateReady();
+        console.log('Auth state ready');
+      } catch (err) {
+        console.error('Auth state ready error:', err);
+      }
+    };
+
+    forceRefresh();
+
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (!isMounted) return;
 

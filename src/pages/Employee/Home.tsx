@@ -28,7 +28,9 @@ const Home: React.FC = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (!isPrefetched) prefetchData();
+    if (!isPrefetched) {
+      prefetchData();
+    }
   }, [isPrefetched, prefetchData]);
 
   useEffect(() => {

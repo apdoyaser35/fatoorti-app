@@ -23,15 +23,6 @@ const Dashboard: React.FC = () => {
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
 
-  // Backup feature states
-  const [backupStart, setBackupStart] = useState<string>(format(subDays(new Date(), 7), 'yyyy-MM-dd'));
-  const [backupEnd, setBackupEnd] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
-  const [backupLoading, setBackupLoading] = useState(false);
-  const [backupSuccess, setBackupSuccess] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showSingleDeleteModal, setShowSingleDeleteModal] = useState(false);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-
   useEffect(() => {
     prefetchData();
   }, [prefetchData]);

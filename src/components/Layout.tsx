@@ -29,9 +29,9 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   };
 
   return (
-    <div className="w-full h-full flex flex-col pb-0 overflow-hidden bg-gray-50">
+    <div className="w-full min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-100 px-4 py-3 md:px-6 md:py-4 flex justify-between items-center flex-shrink-0">
+      <header className="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-100 px-4 py-3 md:px-6 md:py-4 flex justify-between items-center">
         <h1 className="text-lg md:text-xl font-bold text-primary tracking-tight">فاتورتي</h1>
         <button
           onClick={handleLogout}
@@ -42,7 +42,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 px-4 py-4 md:py-6 max-w-lg mx-auto w-full overflow-y-auto overscroll-contain">
+      <main className="flex-1 px-4 py-4 md:py-6 max-w-lg mx-auto w-full pb-20">
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}
@@ -57,7 +57,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       </main>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-gray-100 px-4 py-2 md:px-6 md:py-3 flex justify-around items-center safe-area-bottom z-50 flex-shrink-0">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-gray-100 px-4 py-2 md:px-6 md:py-3 flex justify-around items-center safe-area-bottom z-50">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
