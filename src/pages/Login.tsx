@@ -77,6 +77,9 @@ const Login: React.FC = () => {
               <User className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
               <input
                 type="text"
+                autoComplete="username"
+                autoCapitalize="none"
+                spellCheck={false}
                 placeholder="اسم المستخدم (رقم أو اسم إنجليزي)"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
@@ -88,6 +91,9 @@ const Login: React.FC = () => {
               <Lock className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
               <input
                 type="password"
+                autoComplete="current-password"
+                autoCapitalize="none"
+                spellCheck={false}
                 placeholder="كلمة المرور"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
