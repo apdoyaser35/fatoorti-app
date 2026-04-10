@@ -4,7 +4,7 @@ import { Home, FileText, Users, Building2, Truck, LogOut } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { auth } from '../firebase';
 import { cn } from '../lib/utils';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { profile } = useAuth();
@@ -24,8 +24,11 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         { path: '/employee/invoices', icon: FileText, label: 'فواتيري' },
       ];
 
-  const handleLogout = () => {
-    auth.signOut();
+  const handleLogout = async () => {
+    localStorage.removeItem('auth_user_cached');
+    sessionStorage.removeItem('auth_user_cached');
+
+    await auth.signOut();
   };
 
   return (
@@ -33,6 +36,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-100 px-4 py-3 md:px-6 md:py-4 flex justify-between items-center flex-shrink-0">
         <h1 className="text-lg md:text-xl font-bold text-primary tracking-tight">فاتورتي</h1>
+
         <button
           onClick={handleLogout}
           className="p-2 rounded-full hover:bg-gray-100 text-gray-500 transition-colors"
@@ -52,6 +56,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <nav className="bg-white/90 backdrop-blur-lg border-t border-gray-100 px-4 py-2 md:px-6 md:py-3 flex justify-around items-center safe-area-bottom z-50 flex-shrink-0">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
+
           return (
             <NavLink
               key={item.path}
@@ -65,6 +70,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             >
               <item.icon size={24} strokeWidth={isActive ? 2.5 : 2} />
               <span className="text-[10px] font-medium">{item.label}</span>
+
               {isActive && (
                 <motion.div
                   layoutId="nav-indicator"
