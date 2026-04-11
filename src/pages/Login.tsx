@@ -59,11 +59,11 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center px-4 py-8 md:px-6 md:py-12">
+    <div className="min-h-[100dvh] bg-white flex flex-col items-center justify-center px-4 py-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))]">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-md space-y-8"
+        className="w-full max-w-md space-y-6"
       >
         <div className="text-center space-y-2">
           <h1 className="text-3xl md:text-4xl font-bold text-primary tracking-tight">فاتورتي</h1>
@@ -83,7 +83,7 @@ const Login: React.FC = () => {
                 placeholder="اسم المستخدم (رقم أو اسم إنجليزي)"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full bg-gray-50 border-none rounded-2xl px-12 py-3 md:py-4 text-base md:text-lg focus:ring-2 focus:ring-primary transition-all outline-none"
+                className="w-full bg-gray-50 border-none rounded-2xl px-12 py-3.5 text-base focus:ring-2 focus:ring-primary transition-all outline-none touch-manipulation"
                 required
               />
             </div>
@@ -97,7 +97,7 @@ const Login: React.FC = () => {
                 placeholder="كلمة المرور"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-gray-50 border-none rounded-2xl px-12 py-3 md:py-4 text-base md:text-lg focus:ring-2 focus:ring-primary transition-all outline-none"
+                className="w-full bg-gray-50 border-none rounded-2xl px-12 py-3.5 text-base focus:ring-2 focus:ring-primary transition-all outline-none touch-manipulation"
                 required
               />
             </div>

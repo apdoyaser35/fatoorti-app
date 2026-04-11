@@ -89,9 +89,8 @@ const Invoices: React.FC = () => {
           invoices.map((invoice) => (
             <motion.div
               key={invoice.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-white p-4 md:p-5 rounded-3xl border border-gray-100 shadow-sm space-y-4"
+              initial={false}
+              className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm space-y-4"
             >
               <div className="flex justify-between items-start">
                 <div className="space-y-1">

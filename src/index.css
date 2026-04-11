@@ -84,7 +84,7 @@
   }
   
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-gray-50 text-foreground font-sans;
     direction: rtl;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -97,6 +97,10 @@
 
 .safe-area-bottom {
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+.safe-area-top {
+  padding-top: max(0.75rem, env(safe-area-inset-top));
 }
 
 /* iOS-specific fixes for loading screens and overlays */

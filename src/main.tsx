@@ -5,7 +5,14 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { registerSW } from 'virtual:pwa-register';
 import './index.css';
 
-registerSW({ immediate: true });
+const updateSW = registerSW({
+  immediate: false,
+  onNeedRefresh() {
+    if (window.confirm('يتوفر تحديث للتطبيق. هل تريد إعادة التحميل الآن؟')) {
+      void updateSW(true);
+    }
+  },
+});
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

@@ -11,11 +11,14 @@ export default defineConfig(({mode}) => {
       react(), 
       tailwindcss(),
       VitePWA({
-        registerType: 'autoUpdate',
+        // prompt + onNeedRefresh في main.tsx يمنع إعادة تحميل مفاجئة أثناء الكتابة
+        registerType: 'prompt',
         devOptions: {
-          enabled: true,
+          enabled: false,
         },
         workbox: {
+          skipWaiting: false,
+          clientsClaim: false,
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
           navigateFallback: '/index.html',
           runtimeCaching: [
@@ -48,7 +51,7 @@ export default defineConfig(({mode}) => {
           short_name: 'فاتورتي',
           description: 'نظام إدارة الفواتير',
           theme_color: '#3b82f6',
-          background_color: '#ffffff',
+          background_color: '#f9fafb',
           display: 'standalone',
           start_url: '/',
           icons: [
