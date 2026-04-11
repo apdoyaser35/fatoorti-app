@@ -131,9 +131,8 @@ const Branches: React.FC = () => {
           <div className="md:col-span-2 text-center py-20 text-gray-400 font-bold">لا توجد فروع مضافة</div>
         ) : (
           branches.map((branch) => (
-            <motion.div
+            <div
               key={branch.id}
-              layout
               className="bg-white p-3 md:p-4 rounded-[24px] md:rounded-[28px] border border-gray-100 shadow-sm flex items-center justify-between gap-3 md:gap-4 active:scale-[0.98] transition-transform"
             >
               <div className="flex items-center gap-4">
@@ -172,15 +171,16 @@ const Branches: React.FC = () => {
                   <Trash2 size={16} className="text-destructive" />
                 </button>
               </div>
-            </motion.div>
+            </div>
           ))
         )}
       </div>
 
       {/* Floating Action Button */}
       <button
+        type="button"
         onClick={() => setShowAdd(true)}
-        className="fixed bottom-24 left-6 w-14 h-14 bg-primary text-white rounded-full shadow-lg shadow-primary/30 flex items-center justify-center transition-all active:scale-90 z-40"
+        className="fixed z-40 w-14 h-14 bg-primary text-white rounded-full shadow-lg shadow-primary/30 flex items-center justify-center transition-all active:scale-90 touch-manipulation end-4 bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))]"
       >
         <Plus size={28} />
       </button>
@@ -192,7 +192,7 @@ const Branches: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md flex items-end justify-center"
+            className="fixed inset-0 z-[100] bg-black/60 flex items-end justify-center overscroll-contain"
             onClick={resetForm}
           >
             <motion.div
@@ -200,7 +200,7 @@ const Branches: React.FC = () => {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="bg-white w-full max-w-md rounded-t-[40px] p-6 md:p-8 space-y-6 md:space-y-8 max-h-[90vh] overflow-y-auto"
+              className="bg-white w-full max-w-md rounded-t-[40px] p-6 md:p-8 space-y-6 md:space-y-8 max-h-[min(90dvh,90vh)] min-h-0 overflow-y-auto scrollable"
               onClick={e => e.stopPropagation()}
             >
               <div className="flex justify-between items-center">
